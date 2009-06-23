@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Segmentation</category>
+  <title>Skull Stripper for T1 MR</title>
+  <description>
+    Skull stripping for MR brain image with T1 contrast
+</description>
+  <version>3.0</version>
+  <documentation-url>http://www.slicer.org</documentation-url>
+  <license>slicer3</license>
+  <contributor>Xiaodong Tao</contributor>
+<acknowledgements>
+This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
+</acknowledgements>
+<parameters>
+  <label>IO</label>
+  <description>Input/output parameters</description>
+  <image>
+    <name>inputVolume</name>
+    <label>Input Volume</label>
+    <channel>input</channel>
+    <index>0</index>
+    <description>Input T1 Image.</description>
+  </image>
+
+  <geometry>
+    <name>brainSurface</name>
+    <label>Output brain surface</label>
+    <channel>output</channel>
+    <index>1</index>
+    <description>Brain surface</description>
+  </geometry>
+
+  <image type="label">
+    <name>brainMask</name>
+    <label>Brain Mask</label>
+    <channel>output</channel>
+    <index>2</index>
+    <description>Output brain mask map.</description>
+  </image>
+</parameters>
+
+<parameters>
+  <label>Skull Stripping Parameters</label>
+  <description>Parameters used for skull stripping.</description>
+  <float>
+    <name>lThreshold</name>
+    <flag>-l</flag>
+    <longflag>--lower</longflag>
+    <description>Lower threshold (set to be a value between average GM intensity and average CSF intensity).</description>
+    <label>LowerThreshold</label>
+    <default>400.0</default>
+  </float> 
+  <float>
+    <name>uThreshold</name>
+    <flag>-u</flag>
+    <longflag>--upper</longflag>
+    <description>Upper threshold (set to be a value higher than the average WM intensity and smaller than the average intensity of brigher non brain structures).</description>
+    <label>UpperThreshold</label>
+    <default>1600.0</default>
+  </float>
+
+   <integer>
+     <name>nIterations</name>
+     <label>Iterations</label>
+     <flag>-i</flag>
+     <longflag>--iteration</longflag>
+     <description>Number of deformation iterations</description>
+     <default>800</default>
+     <constraints>
+     <minimum>0</minimum>
+     </constraints>
+   </integer>
+
+   <integer>
+     <name>sphericalResolution</name>
+     <label>Subdivisions</label>
+     <flag>-r</flag>
+     <longflag>--division</longflag>
+     <description>Number of subdivision for surface parameterization (4002 vertices for 20)</description>
+     <default>20</default>
+     <constraints>
+     <minimum>15</minimum>
+     <maximum>30</maximum>
+     </constraints>
+   </integer>
+
+   <integer>
+     <name>postDilationRadius</name>
+     <label>Dilation Radius after deformation</label>
+     <flag>-d</flag>
+     <longflag>--dilation</longflag>
+     <description>Radius of the structure element for dilation</description>
+     <default>0</default>
+     <constraints>
+     <minimum>0</minimum>
+     <maximum>4</maximum>
+     </constraints>
+   </integer>
+
+</parameters>
+</executable>
