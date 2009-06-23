@@ -2,33 +2,16 @@ PROJECT(SkullStripper)
 
 cmake_minimum_required(VERSION 2.4)
 
-find_package(GenerateCLP REQUIRED)
-if(GenerateCLP_FOUND)
-  include(${GenerateCLP_USE_FILE})
-endif(GenerateCLP_FOUND)
-find_package(vtkITK REQUIRED)
+include_directories( ${SlicerBaseCLI_BINARY_DIR} ${SlicerBaseCLI_SOURCE_DIR} )
 
 link_directories(${ModuleDescriptionParser_BINARY_DIR})
-
-include_directories( ${SlicerBaseCLI_BINARY_DIR} ${SlicerBaseCLI_SOURCE_DIR} )
 link_directories(${SlicerBaseCLI_BINARY_DIR})
 
-FIND_PACKAGE(ITK)
-IF(ITK_FOUND)
-  INCLUDE(${ITK_USE_FILE})
-ELSE(ITK_FOUND)
-  MESSAGE(FATAL_ERROR
-    "ITK not found.  Please set ITK_DIR.")
-ENDIF(ITK_FOUND)
-
-
-FIND_PACKAGE(VTK)
-IF(VTK_FOUND)
-  INCLUDE(${VTK_USE_FILE})
-ELSE(VTK_FOUND)
-  MESSAGE(FATAL_ERROR
-            "VTK not found.  Please set VTK_DIR.")
-ENDIF(VTK_FOUND)
+if(NOT Slicer3_SOURCE_DIR)
+  find_package(Slicer3 REQUIRED)
+  include(${Slicer3_USE_FILE})
+  slicer3_set_default_install_prefix_for_external_projects()
+endif(NOT Slicer3_SOURCE_DIR)
 
 
 ################################################
