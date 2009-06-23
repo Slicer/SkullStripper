@@ -18,7 +18,7 @@ endif(NOT Slicer3_SOURCE_DIR)
 SET (CLP SkullStripper)
 
 set ( ${CLP}_SOURCE ${CLP}.cxx)
-generateclp(${CLP}_SOURCE ${CLP}.xml ${Slicer3_SOURCE_DIR}/Resources/ITKLogo.h)
+generateclp(${CLP}_SOURCE ${CLP}.xml ${Slicer3_DIR}../Slicer3/Resources/ITKLogo.h)
 add_executable(${CLP} ${${CLP}_SOURCE})
 target_link_libraries (${CLP} ITKCommon ITKNumerics ITKNrrdIO ITKIO ITKStatistics vtkIO vtkCommon vtkFiltering vtkGraphics vtkRendering)
 
