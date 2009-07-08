@@ -16,7 +16,7 @@ IF (Slicer3_FOUND)
   SET (CLP SkullStripper)
 
   set ( ${CLP}_SOURCE ${CLP}.cxx)
-  generateclp(${CLP}_SOURCE ${CLP}.xml ${Slicer3_DIR}/../Slicer3/Resources/ITKLogo.h)
+  generateclp(${CLP}_SOURCE ${CLP}.xml)
   add_executable(${CLP} ${${CLP}_SOURCE})
   target_link_libraries (${CLP} ITKCommon ITKNumerics ITKNrrdIO ITKIO ITKStatistics vtkIO vtkCommon vtkFiltering vtkGraphics vtkRendering)
 

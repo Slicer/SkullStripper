@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <executable>
   <category>Segmentation</category>
-  <title>Skull Stripper for T1 MR</title>
+  <title>Skull Stripper for Structural MR</title>
   <description>
-    Skull stripping for MR brain image with T1 contrast
+    Skull stripping for structural MR images of the brain, tested on T1 and T2 contrast. 
 </description>
   <version>3.0</version>
   <documentation-url>http://www.slicer.org</documentation-url>
@@ -43,22 +43,6 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
 <parameters>
   <label>Skull Stripping Parameters</label>
   <description>Parameters used for skull stripping.</description>
-  <float>
-    <name>lThreshold</name>
-    <flag>-l</flag>
-    <longflag>--lower</longflag>
-    <description>Lower threshold (set to be a value between average GM intensity and average CSF intensity).</description>
-    <label>LowerThreshold</label>
-    <default>400.0</default>
-  </float> 
-  <float>
-    <name>uThreshold</name>
-    <flag>-u</flag>
-    <longflag>--upper</longflag>
-    <description>Upper threshold (set to be a value higher than the average WM intensity and smaller than the average intensity of brigher non brain structures).</description>
-    <label>UpperThreshold</label>
-    <default>1600.0</default>
-  </float>
 
    <integer>
      <name>nIterations</name>

@@ -35,6 +35,13 @@
 
 #include "itkScalarImageToListAdaptor.h"
 #include "itkListSampleToHistogramGenerator.h"
+#include "itkFuzzyClassificationImageFilter.h"
+#include "itkCastImageFilter.h"
+#include "itkBinaryThresholdImageFilter.h"
+#include "itkConnectedComponentImageFilter.h"
+#include "itkRelabelComponentImageFilter.h"
+
+#include "itkSignedMaurerDistanceMapImageFilter.h"
 
 #include "vtkSphereSource.h"
 #include "vtkPolyDataMapper.h"
@@ -91,8 +98,8 @@ typedef std::vector<vtkIdType> NeighborhoodType;
 const unsigned int ImageDimension = 3;
 typedef signed short PixelType;
 typedef itk::OrientedImage< PixelType, ImageDimension > ImageType;
-typedef  itk::OrientedImage<unsigned char, ImageDimension> LabelImageType;
-typedef  itk::OrientedImage<double, ImageDimension> FloatImageType;
+typedef itk::OrientedImage<unsigned char, ImageDimension> LabelImageType;
+typedef itk::OrientedImage<double, ImageDimension> FloatImageType;
 typedef itk::ImageFileReader< ImageType  > ImageReaderType;
 
 typedef itk::Statistics::ScalarImageToListAdaptor< ImageType >   AdaptorType;
@@ -196,7 +203,7 @@ void PolyDataToLabelMap( vtkPolyData* polyData, LabelImageType::Pointer label)
   typedef itk::BinaryThresholdImageFunction<LabelImageType> ImageFunctionType;
   ImageFunctionType::Pointer func = ImageFunctionType::New();
   func->SetInputImage( closedLabel );
-  func->ThresholdBelow(0.5);
+  func->ThresholdBelow(1);
 
   FloatImageType::IndexType idx;
   label->TransformPhysicalPointToIndex( COG, idx );
@@ -780,8 +787,6 @@ int main( int argc, char *argv[] )
     const SeriesReaderType::FileNamesContainer & filenames =
       it->GetInputFileNames();
 
-    unsigned int numberOfFilename = filenames.size();
-
     sReader->SetFileNames( filenames );
     sReader->SetImageIO( gdcmIO );
 
@@ -819,8 +824,6 @@ int main( int argc, char *argv[] )
       
       const SeriesReaderType::FileNamesContainer & filenames =
         it->GetInputFileNames();
-      
-      unsigned int numberOfFilename = filenames.size();
       
       sReader->SetFileNames( filenames );
       sReader->SetImageIO( gdcmIO );
@@ -976,8 +979,9 @@ int main( int argc, char *argv[] )
     image0->TransformPhysicalPointToContinuousIndex( pt, cIdx );
 
     if( image0->GetLargestPossibleRegion().IsInside(cIdx) )
-    {
-      itOut.Set( interpolator->Evaluate( pt ) );
+      {
+      ImageType::PixelType p = static_cast<ImageType::PixelType>( interpolator->Evaluate(pt) );
+      itOut.Set( p );
     }
   }
 
@@ -998,8 +1002,8 @@ int main( int argc, char *argv[] )
     numberOfSlices = nTopSlice-nStartSlice+1;
   }
 
-  //region.SetIndex(2, nStartSlice);
-  //region.SetSize(2, numberOfSlices);
+  region.SetIndex(2, nStartSlice);
+  region.SetSize(2, numberOfSlices);
    
   std::cout << "Extract region: " << region << std::endl;
 
@@ -1013,7 +1017,7 @@ int main( int argc, char *argv[] )
   //extImage->SetInput( extract->GetOutput() );
   //extImage->Update( );
 
-  ImageType::Pointer image = extract->GetOutput();
+  ImageType::Pointer image = outImage;
   spacing = image->GetSpacing();
 
   // initialize label image
@@ -1054,16 +1058,18 @@ int main( int argc, char *argv[] )
   // compute brain size and center of gravity
   COG.Fill( 0.0 );
   unsigned long HeadVoxelCount = 0;
-  itk::ImageRegionIteratorWithIndex<ImageType> it( image, image->GetLargestPossibleRegion() );
-  for ( it.GoToBegin(); !it.IsAtEnd(); ++it )
+  itk::ImageRegionIteratorWithIndex<ImageType> itImg( image, image->GetLargestPossibleRegion() );
+  itk::ImageRegionIteratorWithIndex<ImageType> itCrop( image, region );
+
+  for ( itCrop.GoToBegin(); !itCrop.IsAtEnd(); ++itCrop )
     {
-    PixelType a = it.Get();
+    PixelType a = itCrop.Get();
     if (a < tinit || a > t98)
       {
       continue;
       }
     HeadVoxelCount ++;
-    ImageType::IndexType idx = it.GetIndex();
+    ImageType::IndexType idx = itCrop.GetIndex();
     ImageType::PointType point;
     image->TransformIndexToPhysicalPoint( idx, point );
     for (::size_t k = 0; k < ImageDimension; k++)
@@ -1072,7 +1078,6 @@ int main( int argc, char *argv[] )
       }
     }
   
-
   float HeadVolume = static_cast<float>( HeadVoxelCount );
   for (::size_t k = 0; k < ImageDimension; k++)
     {
@@ -1198,7 +1203,105 @@ int main( int argc, char *argv[] )
     allPoints->SetPoint( k, point[0], point[1], point[2] );
     }  
 
-  interpolator->SetInputImage( image );
+  std::cout << "Initial mash generated\n";
+  PolyDataToLabelMap( polyData, label );
+  label = BinaryDilateFilter3D( label, 5 );
+
+  // tissue classification
+  itk::CastImageFilter<ImageType, FloatImageType>::Pointer imageCaster = itk::CastImageFilter<ImageType, FloatImageType>::New();
+  itk::CastImageFilter<LabelImageType, FloatImageType>::Pointer labelCaster = itk::CastImageFilter<LabelImageType, FloatImageType>::New();
+
+  imageCaster->SetInput( image );
+  imageCaster->Update();
+
+  labelCaster->SetInput( label );
+  labelCaster->Update();
+
+  typedef itk::FuzzyClassificationImageFilter<FloatImageType, FloatImageType> ClassifierType;
+  ClassifierType::Pointer classifier = ClassifierType::New();
+  classifier->SetInput( imageCaster->GetOutput() );
+
+  classifier->SetNumberOfClasses( 3 );
+  classifier->SetBiasCorrectionOption( 1 );
+  classifier->SetImageMask( labelCaster->GetOutput() );
+
+  try
+    {
+    classifier->Update();
+    }
+  catch (itk::ExceptionObject &ex)
+    {
+    std::cout << ex << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  // extrapolate
+  FloatImageType::Pointer gain = classifier->GetBiasField();
+  FloatImageType::Pointer csf = classifier->GetOutput(0);
+  FloatImageType::Pointer gm = classifier->GetOutput(1);
+  FloatImageType::Pointer wm = classifier->GetOutput(2);
+
+  FloatImageType::Pointer feature = FloatImageType::New();
+  feature->CopyInformation( csf );
+  feature->SetRegions( feature->GetLargestPossibleRegion() );
+  feature->Allocate();
+  feature->FillBuffer( 0 );
+  
+  FloatImageType::Pointer featureWM = FloatImageType::New();
+  featureWM->CopyInformation( wm );
+  featureWM->SetRegions( featureWM->GetLargestPossibleRegion() );
+  featureWM->Allocate();
+  featureWM->FillBuffer( 0 );
+
+  const std::vector<float>& classcenter = classifier->GetClassCentroid();
+  const std::vector<float>& classstd = classifier->GetClassStandardDeviation();
+
+  for (itImg.GoToBegin(); !itImg.IsAtEnd(); ++itImg)
+  {
+    ImageType::IndexType idx = itImg.GetIndex();
+    float p = static_cast<float>( itImg.Get() );
+    if (label->GetPixel(idx) != 0)
+    {
+      continue;
+    }
+    float g = gain->GetPixel( idx );
+    float csf0 = p - classcenter[0] * g;
+    if (csf0 != 0)
+    {
+      csf0 = 1/(csf0*csf0);
+    }
+    float gm0 = p - classcenter[1] * g;
+    if (gm0 != 0)
+    {
+      gm0 = 1/(gm0*gm0);
+    }
+    float wm0 = p - classcenter[2] * g;
+    if (wm0 != 0)
+    {
+      wm0 = 1/(wm0*wm0);
+    }
+    g = csf0+wm0+gm0;
+    csf->SetPixel( idx, csf0/g ); 
+    gm->SetPixel( idx, gm0/g ); 
+    wm->SetPixel( idx, wm0/g ); 
+  }
+
+  for (itImg.GoToBegin(); !itImg.IsAtEnd(); ++itImg)
+  {
+    ImageType::IndexType idx = itImg.GetIndex();
+    float p = csf->GetPixel(idx);
+    p += p; p -= wm->GetPixel(idx); p -= gm->GetPixel(idx);
+
+    feature->SetPixel(idx, p);
+
+    p = static_cast<float>( itImg.Get() );
+    float g = gain->GetPixel( idx );
+    float wm0 = (p - classcenter[2] * g)/classstd[2];
+    
+    featureWM->SetPixel( idx, wm0 );
+    p = static_cast<float>( itImg.Get() )/g;
+    itImg.Set( static_cast<ImageType::PixelType>(p) );
+  }
 
   // do iteration
 
@@ -1215,11 +1318,48 @@ int main( int argc, char *argv[] )
 
   std::vector<ImageType::PixelType> IntensityOnLine(nSearchPoints);
 
-  unsigned char lblValue = 0;
+
   double change = 0;
   double change1 = 0;
   double change2 = 0;
   double change3 = 0;
+
+  float lThreshold = (classcenter[0]+classcenter[1])/2;
+  float uThreshold = (classcenter[2]+2*classstd[2]);
+
+  std::cout << "threshold: " << lThreshold << ", " << uThreshold << std::endl;
+
+  itk::LinearInterpolateImageFunction< ImageType, double >::Pointer imgInterpolator = 
+    itk::LinearInterpolateImageFunction< ImageType, double >::New();
+  imgInterpolator->SetInputImage( image );
+
+  itk::LinearInterpolateImageFunction< FloatImageType, double >::Pointer fInterpolator = 
+    itk::LinearInterpolateImageFunction< FloatImageType, double >::New();
+  itk::LinearInterpolateImageFunction< FloatImageType, double >::Pointer wInterpolator = 
+    itk::LinearInterpolateImageFunction< FloatImageType, double >::New();
+
+  itk::LinearInterpolateImageFunction< FloatImageType, double >::Pointer csfInterpolator = 
+    itk::LinearInterpolateImageFunction< FloatImageType, double >::New();
+  itk::LinearInterpolateImageFunction< FloatImageType, double >::Pointer wmInterpolator = 
+    itk::LinearInterpolateImageFunction< FloatImageType, double >::New();
+  itk::LinearInterpolateImageFunction< FloatImageType, double >::Pointer gmInterpolator = 
+    itk::LinearInterpolateImageFunction< FloatImageType, double >::New();
+
+  fInterpolator->SetInputImage( feature );
+  wInterpolator->SetInputImage( featureWM );
+  csfInterpolator->SetInputImage( csf );
+  gmInterpolator->SetInputImage( gm );
+  wmInterpolator->SetInputImage( wm );
+
+  int LeftBound = 5;
+  int RightBound = 30;
+
+  std::vector<float> imgProfile(LeftBound+RightBound+1);
+  std::vector<float> fProfile(LeftBound+RightBound+1);
+  std::vector<float> wProfile(LeftBound+RightBound+1);
+  std::vector<float> csfProfile(LeftBound+RightBound+1);
+  std::vector<float> gmProfile(LeftBound+RightBound+1);
+  std::vector<float> wmProfile(LeftBound+RightBound+1);
 
   while (1)
     {
@@ -1232,58 +1372,6 @@ int main( int argc, char *argv[] )
       break;
     }
 
-    // write out something
-    // if (iter % 25 == 0)
-    if (0)
-      {
-      lblValue ++;
-      char filename[1024];
-      PolyDataToLabelMap( polyData, label );
-      sprintf( filename, "deform%03d.mha", iter );
-      wlabel->SetFileName( filename );
-      wlabel->SetInput( label );
-      wlabel->Update();
-
-      itk::ImageRegionIteratorWithIndex<LabelImageType> itLabel( label, label->GetLargestPossibleRegion() );
-      for (itLabel.GoToBegin(); !itLabel.IsAtEnd(); ++itLabel)
-      {
-        LabelImageType::IndexType i = itLabel.GetIndex();
-        if (itLabel.Get() == 0 && flabel->GetPixel(i) != 0)
-        {
-          flabel->SetPixel( i, 0 );
-        }
-        else if (itLabel.Get() != 0 && flabel->GetPixel(i) == 0)
-        {
-          flabel->SetPixel( i, lblValue );
-        }
-      }
-
-
-      sprintf( filename, "deform%03d.vtk", iter );
-      vtkPolyDataWriter *w = vtkPolyDataWriter::New();
-      w->SetFileName( filename );
-      w->SetFileTypeToASCII();
-
-      for (int k = 0; k < nPoints; k++)
-        {
-        double* point = polyData->GetPoint( k );
-        point[0] = -point[0];
-        point[1] = -point[1];
-        allPoints->SetPoint( k, point[0], point[1], point[2] );
-        }  
-      w->SetInput(polyData);
-      w->Update();
-      w->Delete();
-
-      for (int k = 0; k < nPoints; k++)
-        {
-        double* point = polyData->GetPoint( k );
-        point[0] = -point[0];
-        point[1] = -point[1];
-        allPoints->SetPoint( k, point[0], point[1], point[2] );
-        }  
-      }
-    
     change = 0;
     change1 = 0;
     change2 = 0;
@@ -1385,31 +1473,48 @@ int main( int argc, char *argv[] )
       update2[1] = 0.25*w2*diffnormal[1]*stepSize;
       update2[2] = 0.25*w2*diffnormal[2]*stepSize;
       
-      float imageforceiter;
-      float imageforce = 1.0;
       // xk = pc is a physical point
-      for (int d = 0; d < 30; d++)
-        {
+      for (int d = -LeftBound; d <= RightBound; d++)
+      {
         ImageType::PointType point;  
-       
+
         // set point values
         for( int m = 0; m <3; m ++)
-          {
+        {
           point[m] = pc[m]-d*normal[m]*stepSize;         
-          }
+        }
         itk::ContinuousIndex<double, 3> cidx;    
         image->TransformPhysicalPointToContinuousIndex( point, cidx );
-        ImageType::PixelType value;
         if (image->GetLargestPossibleRegion().IsInside(cidx))
         {
-          value = static_cast<PixelType>( interpolator->EvaluateAtContinuousIndex( cidx ) );
+          imgProfile[d+LeftBound] = static_cast<float>( imgInterpolator->EvaluateAtContinuousIndex( cidx ) );
+          //fProfile[d+LeftBound] = fInterpolator->EvaluateAtContinuousIndex( cidx );
+          //wProfile[d+LeftBound] = wInterpolator->EvaluateAtContinuousIndex( cidx );
+          //csfProfile[d+LeftBound] = csfInterpolator->EvaluateAtContinuousIndex( cidx );
+          //gmProfile[d+LeftBound] = gmInterpolator->EvaluateAtContinuousIndex( cidx );
+          //wmProfile[d+LeftBound] = wmInterpolator->EvaluateAtContinuousIndex( cidx );
+
         }
         else
         {
-          value = 0;
-        }
+          imgProfile[d+LeftBound] = 0;
+          //fProfile[d+LeftBound] = 0;
+          //wProfile[d+LeftBound] = 0;
+          //csfProfile[d+LeftBound] = 0;
+          //gmProfile[d+LeftBound] = 0;
+          //wmProfile[d+LeftBound] = 0;
 
-        double tanhvalue = tanh((static_cast <float> (value)-lThreshold)/100);
+        }
+      }
+
+      // using the profiles to compute image force
+      float imageforceiter;
+      float imageforce = 1.0;
+
+      for ( int d = 0; d <=RightBound; d++ )
+      {
+        int i = d+LeftBound;
+      double tanhvalue = tanh((static_cast <float> (imgProfile[i])-lThreshold)/(lThreshold/4));
         //double tanhvalue = tanh((static_cast <float> (value*24)/static_cast <float> (t98))-4);
         imageforceiter = (0 < tanhvalue ? tanhvalue : 0);
         if ( iter > 50 && imageforceiter == 0)
@@ -1422,7 +1527,7 @@ int main( int argc, char *argv[] )
         }
 
         //take care of areas around eyes 
-        double tanhvalue2 = tanh((static_cast <float> (value)-uThreshold)/400);
+        double tanhvalue2 = tanh((static_cast <float> (imgProfile[i])-uThreshold)/(uThreshold/4));
         //double tanhvalue2 = tanh((static_cast <float> (value*6)/static_cast <float> (t98))-4);
         if ( tanhvalue2 > 0 )
         {
@@ -1435,6 +1540,7 @@ int main( int argc, char *argv[] )
           update2[2] *= relaxFactor;
         }
       }
+
       imageforce *= (stepSize*1.25);
       update3[0] = imageforce*normal[0];
       update3[1] = imageforce*normal[1];
@@ -1469,7 +1575,7 @@ int main( int argc, char *argv[] )
       if (iter % 25 == 0)
       {
         std::cout << "EOI " << iter << ": ";
-      std::cout << "  C = " << change <<  "  C1 = " << change1 <<  "  C = " << change2 <<  "  C3 = " << change3 << std::endl;
+      std::cout << "  C = " << change <<  "  C1 = " << change1 <<  "  C2 = " << change2 <<  "  C3 = " << change3 << std::endl;
       }
 
       iter++;
@@ -1488,10 +1594,19 @@ int main( int argc, char *argv[] )
     allPoints->SetPoint( k, point[0], point[1], point[2] );
   }  
 
-  vtkXMLPolyDataWriter *wPoly = vtkXMLPolyDataWriter::New();
+  vtkPolyDataWriter *wPoly = vtkPolyDataWriter::New();
   wPoly->SetFileName(brainSurface.c_str());
   wPoly->SetInput(polyData);    
   wPoly->Update();
+
+  allPoints = polyData->GetPoints();
+  for (int k = 0; k < nPoints; k++)
+  {
+    double* point = polyData->GetPoint( k );
+    point[0] = -point[0];
+    point[1] = -point[1];
+    allPoints->SetPoint( k, point[0], point[1], point[2] );
+  }  
 
   // binary dilation with radius 2
   LabelImageType::Pointer imgDilate;
@@ -1507,15 +1622,56 @@ int main( int argc, char *argv[] )
   wlabel->SetInput( imgDilate );
   wlabel->Update();
 
-  // masked out brain region
-  for (it.GoToBegin(); !it.IsAtEnd(); ++it)
+  LabelImageType::Pointer finalLabel = LabelImageType::New();
+  finalLabel->CopyInformation( image );
+  finalLabel->SetRegions( finalLabel->GetLargestPossibleRegion() );
+  finalLabel->Allocate();
+  finalLabel->FillBuffer( 0 );
+
+  for (itImg.GoToBegin(); !itImg.IsAtEnd(); ++itImg)
+  {
+    ImageType::IndexType idx = itImg.GetIndex();
+    if ( imgDilate->GetPixel(idx) == 0 )
     {
-    ImageType::IndexType idx = it.GetIndex();
-    if (imgDilate->GetPixel(idx) == 0)
-      {
-      it.Set( 0 );
-      }
+      csf->SetPixel( idx, 0 );
+      gm->SetPixel( idx, 0 );
+      wm->SetPixel( idx, 0 );
     }
+    float csf0 = csf->GetPixel(idx);
+    float gm0 = gm->GetPixel(idx);
+    float wm0 = wm->GetPixel(idx);
+    if (csf0 > gm0 && csf0 > wm0)
+    {
+      finalLabel->SetPixel( idx, 1 );
+    }
+    if (gm0 > csf0 && gm0 > wm0)
+    {
+      finalLabel->SetPixel( idx, 2 );
+    }
+    if (wm0 > gm0 && wm0 > csf0)
+    {
+      finalLabel->SetPixel( idx, 3 );
+    }
+  }
+
+  itk::ImageFileWriter<FloatImageType>::Pointer fWriter = itk::ImageFileWriter<FloatImageType>::New();
+  fWriter->SetInput( csf );
+  std::string fname = "csf-" + brainMask;
+  fWriter->SetFileName( fname.c_str() );
+  fWriter->Update();
+  fWriter->SetInput( gm );
+  fname = "gm-" + brainMask;
+  fWriter->SetFileName( fname.c_str() );
+  fWriter->Update();
+  fWriter->SetInput( wm );
+  fname = "wm-" + brainMask;
+  fWriter->SetFileName( fname.c_str() );
+  fWriter->Update();
+
+  fname = "label-" + brainMask;
+  wlabel->SetInput( finalLabel );
+  wlabel->SetFileName( fname.c_str() );
+  wlabel->Update();
 
   return 0;
 }
