@@ -1594,7 +1594,7 @@ int main( int argc, char *argv[] )
     allPoints->SetPoint( k, point[0], point[1], point[2] );
   }  
 
-  vtkPolyDataWriter *wPoly = vtkPolyDataWriter::New();
+  vtkXMLPolyDataWriter *wPoly = vtkXMLPolyDataWriter::New();
   wPoly->SetFileName(brainSurface.c_str());
   wPoly->SetInput(polyData);    
   wPoly->Update();
@@ -1655,23 +1655,40 @@ int main( int argc, char *argv[] )
   }
 
   itk::ImageFileWriter<FloatImageType>::Pointer fWriter = itk::ImageFileWriter<FloatImageType>::New();
-  fWriter->SetInput( csf );
-  std::string fname = "csf-" + brainMask;
-  fWriter->SetFileName( fname.c_str() );
-  fWriter->Update();
-  fWriter->SetInput( gm );
-  fname = "gm-" + brainMask;
-  fWriter->SetFileName( fname.c_str() );
-  fWriter->Update();
-  fWriter->SetInput( wm );
-  fname = "wm-" + brainMask;
-  fWriter->SetFileName( fname.c_str() );
-  fWriter->Update();
+  unsigned int lastSlash = brainMask.find_last_of('/');
+  std::string dirName = "";
+  if (lastSlash != -1)
+  {
+    dirName = brainMask.substr(0, lastSlash);
+  }
 
-  fname = "label-" + brainMask;
-  wlabel->SetInput( finalLabel );
-  wlabel->SetFileName( fname.c_str() );
-  wlabel->Update();
+  if (csfMemberShip.find(".") != std::string::npos)
+  {
+    fWriter->SetInput( csf );
+    fWriter->SetFileName( csfMemberShip.c_str() );
+    fWriter->Update();
+  }
+
+  if (GMMemberShip.find(".") != std::string::npos)
+  {
+    fWriter->SetInput( gm );
+    fWriter->SetFileName( GMMemberShip.c_str() );
+    fWriter->Update();
+  }
+
+  if (WMMemberShip.find(".") != std::string::npos)
+  {
+    fWriter->SetInput( wm );
+    fWriter->SetFileName( WMMemberShip.c_str() );
+    fWriter->Update();
+  }
+
+  if (labelCombined.find(".") != std::string::npos)
+  {
+    wlabel->SetInput( finalLabel );
+    wlabel->SetFileName( labelCombined.c_str() );
+    wlabel->Update();
+  }
 
   return 0;
 }

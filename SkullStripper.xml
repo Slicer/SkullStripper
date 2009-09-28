@@ -3,84 +3,133 @@
   <category>Segmentation</category>
   <title>Skull Stripper for Structural MR</title>
   <description>
-    Skull stripping for structural MR images of the brain, tested on T1 and T2 contrast. 
-</description>
+    Skull stripping for structural MR images of the brain, tested on T1 and T2 contrast.
+  </description>
   <version>3.0</version>
   <documentation-url>http://www.slicer.org</documentation-url>
   <license>slicer3</license>
-  <contributor>Xiaodong Tao</contributor>
-<acknowledgements>
-This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
-</acknowledgements>
-<parameters>
-  <label>IO</label>
-  <description>Input/output parameters</description>
-  <image>
-    <name>inputVolume</name>
-    <label>Input Volume</label>
-    <channel>input</channel>
-    <index>0</index>
-    <description>Input T1 Image.</description>
-  </image>
+  <contributor>Xiaodong Tao, taox@research.ge</contributor>
+  <acknowledgements>
+    This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
+  </acknowledgements>
+  <parameters>
+    <label>IO</label>
+    <description>Input/output parameters</description>
+    <image>
+      <name>inputVolume</name>
+      <label>Input Volume</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description>Input MR Image.</description>
+    </image>
+    
+    <geometry>
+      <name>brainSurface</name>
+      <label>Output brain surface</label>
+      <channel>output</channel>
+      <index>1</index>
+      <description>Brain surface</description>
+    </geometry>
+    
+    <image type="label">
+      <name>brainMask</name>
+      <label>Brain Mask</label>
+      <channel>output</channel>
+      <index>2</index>
+      <description>Output brain mask map.</description>
+    </image>
+  </parameters>
+  
+  <parameters>
+    <label>Skull Stripping Parameters</label>
+    <description>Parameters used for skull stripping.</description>
 
-  <geometry>
-    <name>brainSurface</name>
-    <label>Output brain surface</label>
-    <channel>output</channel>
-    <index>1</index>
-    <description>Brain surface</description>
-  </geometry>
-
-  <image type="label">
-    <name>brainMask</name>
-    <label>Brain Mask</label>
-    <channel>output</channel>
-    <index>2</index>
-    <description>Output brain mask map.</description>
-  </image>
-</parameters>
-
-<parameters>
-  <label>Skull Stripping Parameters</label>
-  <description>Parameters used for skull stripping.</description>
-
-   <integer>
-     <name>nIterations</name>
-     <label>Iterations</label>
-     <flag>-i</flag>
-     <longflag>--iteration</longflag>
-     <description>Number of deformation iterations</description>
-     <default>800</default>
-     <constraints>
-     <minimum>0</minimum>
-     </constraints>
-   </integer>
-
-   <integer>
-     <name>sphericalResolution</name>
-     <label>Subdivisions</label>
-     <flag>-r</flag>
-     <longflag>--division</longflag>
-     <description>Number of subdivision for surface parameterization (4002 vertices for 20)</description>
-     <default>20</default>
-     <constraints>
-     <minimum>15</minimum>
-     <maximum>30</maximum>
-     </constraints>
-   </integer>
-
-   <integer>
-     <name>postDilationRadius</name>
-     <label>Dilation Radius after deformation</label>
-     <flag>-d</flag>
-     <longflag>--dilation</longflag>
-     <description>Radius of the structure element for dilation</description>
-     <default>0</default>
-     <constraints>
-     <minimum>0</minimum>
-     <maximum>4</maximum>
-     </constraints>
-   </integer>
-
-</parameters>
+    <integer>
+      <name>nIterations</name>
+      <label>Iterations</label>
+      <flag>-i</flag>
+      <longflag>--iteration</longflag>
+      <description>Number of deformation iterations</description>
+      <default>800</default>
+      <constraints>
+        <minimum>0</minimum>
+      </constraints>
+    </integer>
+    
+    <integer>
+      <name>sphericalResolution</name>
+      <label>Subdivisions</label>
+      <flag>-r</flag>
+      <longflag>--division</longflag>
+      <description>Number of subdivision for surface parameterization (4002 vertices for 20)</description>
+      <default>20</default>
+      <constraints>
+        <minimum>15</minimum>
+        <maximum>30</maximum>
+      </constraints>
+    </integer>
+    
+    <integer>
+      <name>postDilationRadius</name>
+      <label>Dilation Radius after deformation</label>
+      <flag>-d</flag>
+      <longflag>--dilation</longflag>
+      <description>Radius of the structure element for dilation</description>
+      <default>0</default>
+      <constraints>
+        <minimum>0</minimum>
+        <maximum>4</maximum>
+      </constraints>
+    </integer>
+    
+  </parameters>
+  
+  <parameters advanced="true">
+    <label>Optional Output</label>
+    <description>Output for intermediate results.</description>
+    
+    <image hidden="true">
+      <name>csfMemberShip</name>
+      <label>CSF membership function</label>
+      <longflag>--csf</longflag>
+      <description>Membership function of csf inside brain
+        mask.</description>
+      <channel>output</channel>
+      <default>""</default>
+    </image>
+    
+    <image hidden="true">
+      <name>GMMemberShip</name>
+      <label>Gray Matter membership function</label>
+      <flag>-g</flag>
+      <longflag>--gm</longflag>
+      <description>Membership function of gray matter inside brain
+        mask.</description>
+      <channel>output</channel>
+      <default>""</default>
+    </image>
+    
+    <image hidden="true">
+      <name>WMMemberShip</name>
+      <label>White Matter membership function</label>
+      <flag>-w</flag>
+      <longflag>--wm</longflag>
+      <description>Membership function of white matter inside brain
+        mask.</description>
+      <channel>output</channel>
+      <default>""</default>
+    </image>
+    
+    <image type="label" hidden="true">
+      <name>labelCombined</name>
+      <label>Combined hard segmentation</label>
+      <flag>-l</flag>
+      <longflag>--label</longflag>
+      <description>Hard segmentation of GM, WM, and CSF.</description>
+      <channel>output</channel>
+      <default>""</default>
+    </image>
+    
+  </parameters>
+  
 </executable>
