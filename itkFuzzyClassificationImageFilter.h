@@ -20,6 +20,7 @@
 #ifndef __itkFuzzyClassificationImageFilter_h
 #define __itkFuzzyClassificationImageFilter_h
 
+#include "limits.h"
 #include "vcl_cstdio.h"
 #include "vcl_vector.h"
 #include "itkImageToImageFilter.h"
