@@ -386,9 +386,9 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 
   // let program decide how many bins are there for the histogram
   compute_histogram (image, histVector, binMax, binMin, nBinHistogram);
-  assert (histVector.size() == nBinHistogram);
-  assert (binMin.size() == nBinHistogram);
-  assert (binMax.size() == nBinHistogram);  
+  assert (histVector.size() == static_cast<unsigned long>(nBinHistogram));
+  assert (binMin.size() == static_cast<unsigned long>(nBinHistogram));
+  assert (binMax.size() == static_cast<unsigned long>(nBinHistogram));  
 
   // the variable n_bin below is used to devide the range of intensity used for kernal
   // estimator calculation.  
@@ -435,7 +435,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 
   int kernalLength = kernalEstimator.size();
   assert (kernalLength > 0);
-  assert (xVector.size() == kernalLength);
+  assert (xVector.size() == static_cast<unsigned long>(kernalLength));
 
   for (int k = 1; k < kernalLength-1; k++) {
     if (kernalEstimator[k] < kernalEstimator[k-1])
@@ -1291,7 +1291,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   for (unsigned int i=0; i<centroid_v_grid.size(); i++) {
     if (centroid_v_grid[i][2] < 0) 
       continue;
-    assert (i < SZ);
+    assert (i < static_cast<unsigned int>(SZ));
     int x_1 = grid_center_index[i][0];
     int x_2 = grid_center_index[i][1];
     int x_3 = grid_center_index[i][2];

@@ -1655,12 +1655,6 @@ int main( int argc, char *argv[] )
   }
 
   itk::ImageFileWriter<FloatImageType>::Pointer fWriter = itk::ImageFileWriter<FloatImageType>::New();
-  unsigned int lastSlash = brainMask.find_last_of('/');
-  std::string dirName = "";
-  if (lastSlash != -1)
-  {
-    dirName = brainMask.substr(0, lastSlash);
-  }
 
   if (csfMemberShip.find(".") != std::string::npos)
   {
