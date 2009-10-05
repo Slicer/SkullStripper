@@ -1222,7 +1222,7 @@ int main( int argc, char *argv[] )
   classifier->SetInput( imageCaster->GetOutput() );
 
   classifier->SetNumberOfClasses( 3 );
-  classifier->SetBiasCorrectionOption( 1 );
+  classifier->SetBiasCorrectionOption( 2 );
   classifier->SetImageMask( labelCaster->GetOutput() );
 
   try

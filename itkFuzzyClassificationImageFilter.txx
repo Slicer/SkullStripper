@@ -24,6 +24,7 @@
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkNumericTraits.h"
+#include "itkListSample.h"
 #include "itkObjectFactory.h"
 #include "itkProgressReporter.h"
 
@@ -1386,24 +1387,43 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 {
   // vcl_printf ("compute_histogram(): \n");
 
-  typedef itk::Statistics::ScalarImageToListAdaptor< InputImageType > AdaptorType;
-  typename AdaptorType::Pointer adaptor = AdaptorType::New();
-  adaptor->SetImage (image);
-  typedef typename InputImageType::PixelType  HistogramMeasurementType;
-  typedef itk::Statistics::ListSampleToHistogramGenerator< 
-                AdaptorType, HistogramMeasurementType> GeneratorType;
+  typedef itk::Vector< float, 1 > MeasurementVectorType ;
+  typedef itk::Statistics::ListSample < MeasurementVectorType > ListType;
+  
+  ListType::Pointer list = ListType::New();
+  list->SetMeasurementVectorSize( 1 );
+  list->Clear();
+
+  itk::ImageRegionIteratorWithIndex<InputImageType> it0( image, image->GetLargestPossibleRegion() );
+  for ( it0.GoToBegin(); !it0.IsAtEnd(); ++it0) 
+  {
+    InputImageType::IndexType idx = it0.GetIndex();
+    if ( this->m_ImageMask->GetPixel(idx) == 0 )
+    {
+      continue;
+    }
+    list->PushBack( static_cast<float>( it0.Get() ) );
+  }
+  
+  typedef itk::Statistics::ListSampleToHistogramGenerator<ListType, float> GeneratorType;
   typename GeneratorType::Pointer generator = GeneratorType::New();
   typedef typename GeneratorType::HistogramType  HistogramType;
 
   // let the program decide the number of bins 
   // using the maximum and minimum intensity values
   if (nBin == 0) {
-    typedef itk::ImageRegionIterator< InputImageType > IteratorType;
+    typedef itk::ImageRegionIteratorWithIndex< InputImageType > IteratorType;
     IteratorType it (image, image->GetLargestPossibleRegion());
     typename InputImageType::PixelType bMin = it.Get();
     typename InputImageType::PixelType bMax = it.Get();
 
     for ( it.GoToBegin(); !it.IsAtEnd(); ++it) {
+      InputImageType::IndexType idx = it0.GetIndex();
+      if ( this->m_ImageMask->GetPixel(idx) == 0 )
+      {
+        continue;
+      }
+
       typename InputImageType::PixelType d = it.Get();
       if (bMin > d ) {
         bMin = d;
@@ -1418,7 +1438,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   typename HistogramType::SizeType histogramSize;
   histogramSize.Fill (nBin);
 
-  generator->SetListSample (adaptor);
+  generator->SetListSample (list);
   generator->SetNumberOfBins (histogramSize);
   generator->SetMarginalScale (10.0);
   generator->Update();
