@@ -1398,11 +1398,14 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   for ( it0.GoToBegin(); !it0.IsAtEnd(); ++it0) 
   {
     InputImageType::IndexType idx = it0.GetIndex();
-    if ( this->m_ImageMask->GetPixel(idx) == 0 )
+    if ( !this->m_ImageMask )
     {
-      continue;
+      list->PushBack( static_cast<float>( it0.Get() ) );
     }
-    list->PushBack( static_cast<float>( it0.Get() ) );
+    else if ( this->m_ImageMask->GetPixel(idx) != 0 )
+    {
+      list->PushBack( static_cast<float>( it0.Get() ) );
+    }
   }
   
   typedef itk::Statistics::ListSampleToHistogramGenerator<ListType, float> GeneratorType;
@@ -1419,9 +1422,12 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 
     for ( it.GoToBegin(); !it.IsAtEnd(); ++it) {
       InputImageType::IndexType idx = it0.GetIndex();
-      if ( this->m_ImageMask->GetPixel(idx) == 0 )
+      if ( this->m_ImageMask )
       {
-        continue;
+        if ( this->m_ImageMask->GetPixel(idx) == 0 )
+        {
+          continue;
+        }
       }
 
       typename InputImageType::PixelType d = it.Get();
