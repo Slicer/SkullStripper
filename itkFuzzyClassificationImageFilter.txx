@@ -1397,7 +1397,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   itk::ImageRegionIteratorWithIndex<InputImageType> it0( image, image->GetLargestPossibleRegion() );
   for ( it0.GoToBegin(); !it0.IsAtEnd(); ++it0) 
   {
-    InputImageType::IndexType idx = it0.GetIndex();
+    typename InputImageType::IndexType idx = it0.GetIndex();
     if ( !this->m_ImageMask )
     {
       list->PushBack( static_cast<float>( it0.Get() ) );
@@ -1421,7 +1421,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     typename InputImageType::PixelType bMax = it.Get();
 
     for ( it.GoToBegin(); !it.IsAtEnd(); ++it) {
-      InputImageType::IndexType idx = it0.GetIndex();
+      typename InputImageType::IndexType idx = it0.GetIndex();
       if ( this->m_ImageMask )
       {
         if ( this->m_ImageMask->GetPixel(idx) == 0 )
