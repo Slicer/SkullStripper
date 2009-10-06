@@ -8,7 +8,7 @@
   <version>3.0</version>
   <documentation-url>http://www.slicer.org</documentation-url>
   <license>slicer3</license>
-  <contributor>Xiaodong Tao, taox@research.ge</contributor>
+  <contributor>Xiaodong Tao, taox @ research . ge . com</contributor>
   <acknowledgements>
     This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
   </acknowledgements>
@@ -50,7 +50,7 @@
       <flag>-i</flag>
       <longflag>--iteration</longflag>
       <description>Number of deformation iterations</description>
-      <default>800</default>
+      <default>100</default>
       <constraints>
         <minimum>0</minimum>
       </constraints>

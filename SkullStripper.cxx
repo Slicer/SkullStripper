@@ -797,7 +797,7 @@ int main( int argc, char *argv[] )
       }
     catch (itk::ExceptionObject &excp)
       {
-      std::cerr << "Exception thrown while writing the image" <<
+      std::cerr << "Exception thrown while reading the image" <<
         std::endl;
       std::cerr << excp << std::endl;
       return EXIT_FAILURE;
@@ -835,7 +835,7 @@ int main( int argc, char *argv[] )
         }
       catch (itk::ExceptionObject &excp)
         {
-        std::cerr << "Exception thrown while writing the image" <<
+        std::cerr << "Exception thrown while reading the image" <<
           std::endl;
         std::cerr << excp << std::endl;
         return EXIT_FAILURE;
