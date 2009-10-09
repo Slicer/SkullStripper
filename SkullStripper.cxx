@@ -160,6 +160,83 @@ LabelImageType::Pointer BinaryClosingFilter3D ( LabelImageType::Pointer & img , 
 }
 
 
+void ComputeHistogram (ImageType::Pointer& image, 
+                  ImageType::PixelType bkgroundThreshold,
+                  vcl_vector<float>& histVector,
+                  vcl_vector<float>& binMax,
+                  vcl_vector<float>& binMin,
+                  int& nBin)
+{
+  typedef itk::Vector< float, 1 > MeasurementVectorType ;
+  typedef itk::Statistics::ListSample < MeasurementVectorType > ListType;
+  
+  ListType::Pointer list = ListType::New();
+  list->SetMeasurementVectorSize( 1 );
+  list->Clear();
+
+  itk::ImageRegionIteratorWithIndex<ImageType> it0( image, image->GetLargestPossibleRegion() );
+  for ( it0.GoToBegin(); !it0.IsAtEnd(); ++it0) 
+  {
+    if ( it0.Get() >= bkgroundThreshold )
+    {
+      list->PushBack( static_cast<float>( it0.Get() ) );
+    }
+  }
+  
+  typedef itk::Statistics::ListSampleToHistogramGenerator<ListType, float> GeneratorType;
+  GeneratorType::Pointer generator = GeneratorType::New();
+  typedef GeneratorType::HistogramType  HistogramType;
+
+  // let the program decide the number of bins 
+  // using the maximum and minimum intensity values
+  if (nBin == 0) {
+    typedef itk::ImageRegionIteratorWithIndex< ImageType > IteratorType;
+    IteratorType it (image, image->GetLargestPossibleRegion());
+    ImageType::PixelType bMin = it.Get();
+    ImageType::PixelType bMax = it.Get();
+
+    for ( it.GoToBegin(); !it.IsAtEnd(); ++it) {
+      ImageType::IndexType idx = it0.GetIndex();
+      ImageType::PixelType d = it.Get();
+      if (bMin > d ) {
+        bMin = d;
+      }
+      if (bMax < d) {
+        bMax = d;
+      }
+    }
+    nBin = static_cast<int> (bMax-bMin+1);
+  }
+
+  HistogramType::SizeType histogramSize;
+  histogramSize.Fill (nBin);
+
+  generator->SetListSample (list);
+  generator->SetNumberOfBins (histogramSize);
+  generator->SetMarginalScale (10.0);
+  generator->Update();
+
+  HistogramType::ConstPointer histogram = generator->GetOutput();
+  const unsigned int hs = histogram->Size();
+
+  histVector.clear();
+  binMax.clear();
+  binMin.clear();
+
+  ///debug: // vcl_printf ("\n");
+  for (unsigned int k = 0; k < hs; k++) {
+    float hist_v = histogram->GetFrequency(k, 0);
+    float bin_min = histogram->GetBinMin(0, k);
+    float bin_max = histogram->GetBinMax(0, k);
+    binMin.push_back (bin_min);
+    binMax.push_back (bin_max);
+    histVector.push_back (hist_v);
+    vcl_printf ("h(%.1f,%.1f)=%.0f ", bin_min, bin_max, hist_v);
+    if (k % 3 == 0)
+      vcl_printf ("\n");
+  }
+  vcl_printf ("\t done.\n");
+}
 
 void PolyDataToLabelMap( vtkPolyData* polyData, LabelImageType::Pointer label)
 {
@@ -352,7 +429,7 @@ ImageType::PixelType FindWhiteMatterPeak ( HistogramType::Pointer histogram )
       d += static_cast<double> (frequency[k+m]);
     }
     smoothedfrequency[k] = static_cast<unsigned long> ( d/5 );
-    //std::cout << intensity[k] << " " << smoothedfrequency[k] << std::endl;
+    std::cout << intensity[k] << " " << smoothedfrequency[k] << std::endl;
   }
 
   return t95;
@@ -1172,10 +1249,10 @@ int main( int argc, char *argv[] )
   std::cout << COGIdx[2] << " " << zEnd << "==" << headHeight << std::endl;
 
   // determain ellipsoid dimensions
-  headLength *= (0.5/headWidth);
+  headLength *= (0.65/headWidth);
   headHeight *= (0.4/headWidth);
   headHeight = (headHeight > 0.5 ? headHeight : 0.5);
-  headWidth = 0.5;
+  headWidth = 0.55;
 
   std::cout << headWidth << " " << headLength << " " << headHeight << std::endl;
 

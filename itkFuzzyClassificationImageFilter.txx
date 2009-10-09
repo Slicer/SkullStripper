@@ -320,6 +320,11 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 
     //4) Compute a new membership function u1n[], u2n[], u3n[] using step 1.
     compute_new_mem_fun_u (centroid_v, gain_field_g, img_y, bg_thresh, mem_fun_un);
+    for (int mm = 0; mm < 3; mm++)
+    {
+      std::cout << centroid_v[mm] << " ";
+    }
+    std::cout << "\n";
     
     //5) Test convergence.
     //   if max(u1n[]-u1[], u2n[]-u2[], u3n[]-u3[]) < 0.01, converge and finish.
@@ -1464,11 +1469,11 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     binMin.push_back (bin_min);
     binMax.push_back (bin_max);
     histVector.push_back (hist_v);
-    ///// vcl_printf ("h(%.1f,%.1f)=%.0f ", bin_min, bin_max, hist_v);
-    ///if (k % 3 == 0)
-      ///// vcl_printf ("\n");
+    vcl_printf ("h(%.1f,%.1f)=%.0f ", bin_min, bin_max, hist_v);
+    if (k % 3 == 0)
+      vcl_printf ("\n");
   }
-  ///// vcl_printf ("\t done.\n");
+  vcl_printf ("\t done.\n");
 }
 
 template <class TInputImage, class TOutputImage>
