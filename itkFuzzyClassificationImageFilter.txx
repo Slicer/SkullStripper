@@ -787,7 +787,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 
   //Put image intensity into y[].
   //Put image pixel coordinates into x1[], x2[], x3[].
-  typedef itk::ImageRegionIteratorWithIndex < InputImageType > IndexedIteratorType;
+  typedef itk::ImageRegionConstIteratorWithIndex < InputImageType > IndexedIteratorType;
   IndexedIteratorType iit (image, image->GetRequestedRegion());
   assert (iit.GetIndex().GetIndexDimension() == 3);
   
@@ -795,30 +795,30 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   ///InputImageType::SizeType requestedSize = image->GetRequestedRegion().GetSize();  
   ///int SZ = requestedSize[0] * requestedSize[1] * requestedSize[2];
   int SZ = 0;  
-  for (i=0, iit.GoToBegin(); !iit.IsAtEnd(); ++iit) {
-    typename InputImageType::IndexType idx = iit.GetIndex();
-    float pixel = iit.Get();
-    if (pixel > thresh)
+  for (iit.GoToBegin(); !iit.IsAtEnd(); ++iit) 
+  {
+    if (iit.Get() > thresh)
+    {
       SZ++;
+    }
   }
-  // vcl_printf ("      # pixels > thresh (%f) = %d\n", thresh, SZ);
+
+  vcl_printf ("      # pixels > thresh (%f) = %d\n", thresh, SZ);
 
   vnl_matrix<double> y (SZ,1);
   vnl_matrix<double> x1 (SZ,1);
   vnl_matrix<double> x2 (SZ,1);
   vnl_matrix<double> x3 (SZ,1);
-  for (i=0, iit.GoToBegin(); !iit.IsAtEnd(); ++iit) {
-    typename InputImageType::IndexType idx = iit.GetIndex();
-    double pixel = iit.Get();
-    if (pixel > thresh) {
+
+  for (i=0, iit.GoToBegin(); !iit.IsAtEnd(); ++iit) 
+  {
+    if (iit.Get() > thresh) 
+    {
       assert (i < SZ);
-      y(i, 0) = pixel;
-      int x_1 = idx[0];
-      int x_2 = idx[1];
-      int x_3 = idx[2];
-      x1(i, 0) = (double) x_1;
-      x2(i, 0) = (double) x_2;
-      x3(i, 0) = (double) x_3;
+      y(i, 0) = iit.Get();
+      x1(i, 0) = static_cast<double> (iit.GetIndex()[0]);
+      x2(i, 0) = static_cast<double> (iit.GetIndex()[1]);
+      x3(i, 0) = static_cast<double> (iit.GetIndex()[2]);
       i++;
     }
   }

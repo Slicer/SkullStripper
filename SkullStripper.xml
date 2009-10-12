@@ -62,10 +62,10 @@
       <flag>-r</flag>
       <longflag>--division</longflag>
       <description>Number of subdivision for surface parameterization (4002 vertices for 20)</description>
-      <default>20</default>
+      <default>12</default>
       <constraints>
-        <minimum>15</minimum>
-        <maximum>30</maximum>
+        <minimum>10</minimum>
+        <maximum>20</maximum>
       </constraints>
     </integer>
     
