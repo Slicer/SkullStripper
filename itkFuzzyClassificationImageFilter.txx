@@ -28,8 +28,7 @@
 #include "itkObjectFactory.h"
 #include "itkProgressReporter.h"
 
-namespace itk
-{
+namespace itk{
 
 bool func4sortpairs( const std::pair<int, float> & a, const std::pair<int, float> & b)
 {
@@ -1413,7 +1412,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     }
   }
   
-  typedef itk::Statistics::ListSampleToHistogramGenerator<ListType, float> GeneratorType;
+  typedef itk::Statistics::ScalarImageToHistogramGenerator<InputImageType> GeneratorType;
   typename GeneratorType::Pointer generator = GeneratorType::New();
   typedef typename GeneratorType::HistogramType  HistogramType;
 
@@ -1446,13 +1445,10 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     nBin = static_cast<int> (bMax-bMin+1);
   }
 
-  typename HistogramType::SizeType histogramSize;
-  histogramSize.Fill (nBin);
-
-  generator->SetListSample (list);
-  generator->SetNumberOfBins (histogramSize);
+  generator->SetInput (image);
+  generator->SetNumberOfBins (static_cast<unsigned int>(nBin));
   generator->SetMarginalScale (10.0);
-  generator->Update();
+  generator->Compute();
 
   typename HistogramType::ConstPointer histogram = generator->GetOutput();
   const unsigned int hs = histogram->Size();
@@ -1845,6 +1841,5 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   }
 }
 
-} // end namespace itk
-
+} // end namespace
 #endif

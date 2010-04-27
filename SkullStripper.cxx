@@ -33,8 +33,7 @@
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkBinaryBallStructuringElement.h"
 
-#include "itkScalarImageToListAdaptor.h"
-#include "itkListSampleToHistogramGenerator.h"
+#include "itkScalarImageToHistogramGenerator.h"
 #include "itkFuzzyClassificationImageFilter.h"
 #include "itkCastImageFilter.h"
 #include "itkBinaryThresholdImageFilter.h"
@@ -102,9 +101,8 @@ typedef itk::OrientedImage<unsigned char, ImageDimension> LabelImageType;
 typedef itk::OrientedImage<double, ImageDimension> FloatImageType;
 typedef itk::ImageFileReader< ImageType  > ImageReaderType;
 
-typedef itk::Statistics::ScalarImageToListAdaptor< ImageType >   AdaptorType;
 typedef float        HistogramMeasurementType;
-typedef itk::Statistics::ListSampleToHistogramGenerator< AdaptorType, HistogramMeasurementType > GeneratorType;
+typedef itk::Statistics::ScalarImageToHistogramGenerator< ImageType > GeneratorType;
 typedef GeneratorType::HistogramType  HistogramType;
 
 LabelImageType::Pointer BinaryErodeFilter3D ( LabelImageType::Pointer & img , unsigned int ballsize )
@@ -167,23 +165,8 @@ void ComputeHistogram (ImageType::Pointer& image,
                   vcl_vector<float>& binMin,
                   int& nBin)
 {
-  typedef itk::Vector< float, 1 > MeasurementVectorType ;
-  typedef itk::Statistics::ListSample < MeasurementVectorType > ListType;
   
-  ListType::Pointer list = ListType::New();
-  list->SetMeasurementVectorSize( 1 );
-  list->Clear();
-
-  itk::ImageRegionIteratorWithIndex<ImageType> it0( image, image->GetLargestPossibleRegion() );
-  for ( it0.GoToBegin(); !it0.IsAtEnd(); ++it0) 
-  {
-    if ( it0.Get() >= bkgroundThreshold )
-    {
-      list->PushBack( static_cast<float>( it0.Get() ) );
-    }
-  }
-  
-  typedef itk::Statistics::ListSampleToHistogramGenerator<ListType, float> GeneratorType;
+  typedef itk::Statistics::ScalarImageToHistogramGenerator<ImageType> GeneratorType;
   GeneratorType::Pointer generator = GeneratorType::New();
   typedef GeneratorType::HistogramType  HistogramType;
 
@@ -196,7 +179,6 @@ void ComputeHistogram (ImageType::Pointer& image,
     ImageType::PixelType bMax = it.Get();
 
     for ( it.GoToBegin(); !it.IsAtEnd(); ++it) {
-      ImageType::IndexType idx = it0.GetIndex();
       ImageType::PixelType d = it.Get();
       if (bMin > d ) {
         bMin = d;
@@ -208,13 +190,10 @@ void ComputeHistogram (ImageType::Pointer& image,
     nBin = static_cast<int> (bMax-bMin+1);
   }
 
-  HistogramType::SizeType histogramSize;
-  histogramSize.Fill (nBin);
-
-  generator->SetListSample (list);
-  generator->SetNumberOfBins (histogramSize);
+  generator->SetInput (image);
+  generator->SetNumberOfBins (static_cast<unsigned int>(nBin));
   generator->SetMarginalScale (10.0);
-  generator->Update();
+  generator->Compute();
 
   HistogramType::ConstPointer histogram = generator->GetOutput();
   const unsigned int hs = histogram->Size();
@@ -1112,18 +1091,12 @@ int main( int argc, char *argv[] )
   itk::ImageFileWriter<LabelImageType>::Pointer wlabel = itk::ImageFileWriter<LabelImageType>::New();
 
   // compute histogram
-  AdaptorType::Pointer adaptor = AdaptorType::New();
-  adaptor->SetImage( image );
-
   GeneratorType::Pointer generator = GeneratorType::New();
 
-  HistogramType::SizeType bSize;
-  bSize.Fill( 256 );
-
-  generator->SetListSample( adaptor );
-  generator->SetNumberOfBins( bSize );
+  generator->SetInput( image );
+  generator->SetNumberOfBins( 256 );
   generator->SetMarginalScale( 10.0 );
-  generator->Update();
+  generator->Compute();
 
   HistogramType::Pointer histogram = const_cast<HistogramType*>( generator->GetOutput() );
   PixelType t2 = static_cast<PixelType>(histogram->Quantile(0, 0.02));

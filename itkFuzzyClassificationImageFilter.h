@@ -25,10 +25,7 @@
 #include "vcl_vector.h"
 #include "itkImageToImageFilter.h"
 #include "itkConceptChecking.h"
-#include "itkScalarImageToListAdaptor.h"
 
-namespace itk
-{
 
 /** \class FuzzyClassificationImageFilter
  * \brief Set image values to a user-specified value if they are below, 
@@ -42,8 +39,10 @@ namespace itk
  * 
  * \ingroup IntensityImageFilters Multithreaded
  */
+
+namespace itk {
 template <class TInputImage, class TOutputImage>
-class ITK_EXPORT FuzzyClassificationImageFilter : public ImageToImageFilter<TInputImage,TOutputImage>
+class FuzzyClassificationImageFilter : public ImageToImageFilter<TInputImage,TOutputImage>
 {
 public:
   /** Standard class typedefs. */
@@ -256,11 +255,10 @@ void mask_gain_field (InputImagePointer& image,
 
 };
 
-  
-} // end namespace itk
-  
+} // end namespace
+
 #ifndef ITK_MANUAL_INSTANTIATION
 #include "itkFuzzyClassificationImageFilter.txx"
 #endif
-  
+    
 #endif
