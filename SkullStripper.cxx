@@ -380,18 +380,17 @@ ImageType::PixelType FindWhiteMatterPeak ( HistogramType::Pointer histogram )
   std::cout << "Histogram size: " << size << std::endl;
 
   PixelType t95 = static_cast<PixelType> (histogram->Quantile(0, 0.95));
-  std::cout << "t95 = " << t95 << std::endl;
+  std::cout << "t95 = " << t95 << " Histogram bins: " << size[0] <<  std::endl;
 
   std::vector<ImageType::PixelType> intensity( size[0] );
   std::vector<float> frequency( size[0] );
 
   for (::size_t k = 0; k < size[0]; k++)
   {
-    HistogramType::IndexType hidx;
-    hidx[0] = k;
-    ImageType::PixelType p = static_cast<ImageType::PixelType>( histogram->GetHistogramMinFromIndex (hidx)[0] );
-    intensity[k] = p;
-    frequency[k] = histogram->GetFrequency ( hidx );
+    intensity[k] =  histogram -> GetBinMin( 0, k );
+    frequency[k] =  histogram->GetFrequency ( k );
+    std::cout << histogram -> GetFrequency( k ) << std::endl;
+    std::cout << histogram -> GetBinMin( 0, k ) << std::endl;
   }
 
   // suppress the backgroud values

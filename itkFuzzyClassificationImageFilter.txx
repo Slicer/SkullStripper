@@ -522,8 +522,14 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
           denominator += denominator_l;
         }
         ///mem_fun_u[k][j] = numerator / denominator;
-        assert (denominator != 0);
-        itu.Set (numerator / denominator);
+        if (denominator == 0)
+          {
+            itu.Set (0);
+          }
+        else
+          {
+            itu.Set (numerator / denominator);
+          }
     }
   }
 }

@@ -92,8 +92,7 @@
       <name>csfMemberShip</name>
       <label>CSF membership function</label>
       <longflag>--csf</longflag>
-      <description>Membership function of csf inside brain
-        mask.</description>
+      <description>Membership function of csf inside brain mask.</description>
       <channel>output</channel>
       <default>""</default>
     </image>
@@ -103,8 +102,7 @@
       <label>Gray Matter membership function</label>
       <flag>-g</flag>
       <longflag>--gm</longflag>
-      <description>Membership function of gray matter inside brain
-        mask.</description>
+      <description>Membership function of gray matter inside brain mask.</description>
       <channel>output</channel>
       <default>""</default>
     </image>
@@ -114,8 +112,7 @@
       <label>White Matter membership function</label>
       <flag>-w</flag>
       <longflag>--wm</longflag>
-      <description>Membership function of white matter inside brain
-        mask.</description>
+      <description>Membership function of white matter inside brain mask.</description>
       <channel>output</channel>
       <default>""</default>
     </image>
