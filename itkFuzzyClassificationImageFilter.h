@@ -24,6 +24,7 @@
 #include "vcl_cstdio.h"
 #include "vcl_vector.h"
 #include "itkImageToImageFilter.h"
+#include "itkImageFileWriter.h"
 #include "itkConceptChecking.h"
 
 

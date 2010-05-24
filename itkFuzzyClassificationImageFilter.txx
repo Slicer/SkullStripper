@@ -105,33 +105,33 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   itk::ImageRegionIteratorWithIndex<InputImageType> it( img, img->GetLargestPossibleRegion() );
   if (m_ImageMask)
     {
-    for (it.GoToBegin(); !it.IsAtEnd(); ++it)
-      {
-      typename InputImageType::IndexType idx = it.GetIndex();
-      typename InputImageType::PointType pt;
-      img->TransformIndexToPhysicalPoint( idx, pt );
-      m_ImageMask->TransformPhysicalPointToIndex( pt, idx );
-      if ( !m_ImageMask->GetLargestPossibleRegion().IsInside(idx) )
-      {
-        it.Set( 0 );
-      }
-      else if (m_ImageMask->GetPixel(idx) == 0)
-      {
-        it.Set( 0 );
-      }
-      else
-      {
-        it.Set( inputPtr->GetPixel(it.GetIndex()) );
-      }
-      }
+      for (it.GoToBegin(); !it.IsAtEnd(); ++it)
+        {
+          typename InputImageType::IndexType idx = it.GetIndex();
+          typename InputImageType::PointType pt;
+          img->TransformIndexToPhysicalPoint( idx, pt );
+          m_ImageMask->TransformPhysicalPointToIndex( pt, idx );
+          if ( !m_ImageMask->GetLargestPossibleRegion().IsInside(idx) )
+            {
+              it.Set( 0 );
+            }
+          else if (m_ImageMask->GetPixel(idx) == 0)
+            {
+              it.Set( 0 );
+            }
+          else
+            {
+              it.Set( inputPtr->GetPixel(it.GetIndex()) );
+            }
+        }
     }
   else
     {
-    for (it.GoToBegin(); !it.IsAtEnd(); ++it)
-      {
-      typename InputImageType::IndexType idx = it.GetIndex();
-      it.Set( inputPtr->GetPixel(idx) );
-      }
+      for (it.GoToBegin(); !it.IsAtEnd(); ++it)
+        {
+          typename InputImageType::IndexType idx = it.GetIndex();
+          it.Set( inputPtr->GetPixel(idx) );
+        }
     }
 
   // allocate local image variables
@@ -163,7 +163,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 
   if (this->m_BiasCorrectionOption == 0 || this->m_BiasCorrectionOption == 1 || this->m_BiasCorrectionOption == 2) 
     {
-    afcm_segmentation (img, this->m_NumberOfClasses, 200, 25.0f, 1500.0f,
+    afcm_segmentation (img, this->m_NumberOfClasses, 200, 5.0f, 1500.0f,
                        0, this->m_BiasCorrectionOption, 
                        0.8, 0.8,
                        0.01, gain_field_g,
@@ -256,18 +256,18 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     }
   }
 
-  std::cout << "class centroid: " ;
-  for (int k = 0; k < this->m_NumberOfClasses; k++)
-  {
-    std::cout << this->m_ClassCentroid[k] << ", ";
-  }
-  std::cout << "\n";
+//   std::cout << "class centroid: " ;
+//   for (int k = 0; k < this->m_NumberOfClasses; k++)
+//   {
+//     std::cout << this->m_ClassCentroid[k] << ", ";
+//   }
+//   std::cout << "\n";
 
-  std::cout << "class std: " ;
-  for (int k = 0; k < this->m_NumberOfClasses; k++)
-  {
-    std::cout << this->m_ClassStandardDeviation[k] << ", ";
-  }
+//   std::cout << "class std: " ;
+//   for (int k = 0; k < this->m_NumberOfClasses; k++)
+//   {
+//     std::cout << this->m_ClassStandardDeviation[k] << ", ";
+//   }
   std::cout << "\n";
 
 }
@@ -296,12 +296,9 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   bool conv;
   int iter = 0;
   do {
-    // // vcl_printf ("\nIteration %d:\n", iter);
+    printf ("\nIteration %d:\n", iter);
     //1) Compute new membership functions u1[], u2[], u3[].
     compute_new_mem_fun_u (centroid_v, gain_field_g, img_y, bg_thresh, mem_fun_u);
-
-    ///debug:
-    ///save_mem_fun_u ("output_im", mem_fun_u);
 
     //2) Compute the new centroids v1, v2, v3.
     compute_new_centroids (mem_fun_u, gain_field_g, img_y, centroid_v);
@@ -319,18 +316,22 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 
     //4) Compute a new membership function u1n[], u2n[], u3n[] using step 1.
     compute_new_mem_fun_u (centroid_v, gain_field_g, img_y, bg_thresh, mem_fun_un);
-    for (int mm = 0; mm < 3; mm++)
-    {
-      std::cout << centroid_v[mm] << " ";
-    }
-    std::cout << "\n";
     
     //5) Test convergence.
     //   if max(u1n[]-u1[], u2n[]-u2[], u3n[]-u3[]) < 0.01, converge and finish.
     conv = test_convergence (mem_fun_u, mem_fun_un, conv_thresh);
     iter++;
+    if (conv)
+      {
+        std::cout << "Iter " << iter << " and stop.\n";
+      }
+    else
+      {
+        std::cout << "Iter " << iter << " and go on.\n";
+      }
+
   }
-  while (conv == false);
+  while ( conv == false );
 
   itk::ImageRegionIteratorWithIndex<InputImageType> it( img_y, img_y->GetLargestPossibleRegion() );
   std::vector <float> count( this->m_NumberOfClasses );
@@ -543,7 +544,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                             InputImagePointer& img_y, 
                             vcl_vector<float>& centroid_v)
 {
-  // vcl_printf ("  compute_new_centroids(): ");
+  std::cout << "  compute_new_centroids(): \n";
   const int n_class = mem_fun_u.size();
 
   for (int k = 0; k < n_class; k++) {
@@ -600,7 +601,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                              const float gain_th)
 {
   assert (gain_fit_option == 1 || gain_fit_option == 2);
-  // vcl_printf ("  compute_new_gain_field():\n");
+  std::cout << "  -- compute_new_gain_field():\n";
   // vcl_printf ("    %s fitting, gain_th %f.\n",
   //            (gain_fit_option==1) ? "linear" : "quadratic", 
   //            gain_th);
@@ -608,13 +609,25 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   //Quadratic regression fiting to get the parameter B
   vnl_matrix<double> B;
 
+  typename InputImageType::PixelType maxGain = itk::NumericTraits<typename InputImageType::PixelType>::min();
+  itk::ImageRegionIteratorWithIndex<InputImageType> it( mem_fun_u[2],  mem_fun_u[2]->GetLargestPossibleRegion() );
+  for (it.GoToBegin(); !it.IsAtEnd(); ++it)
+    {
+      if (it.Get() > maxGain)
+        {
+          maxGain = it.Get();
+        }
+    }
+
+  
+
   if (gain_fit_option == 1) {
-    img_regression_linear (mem_fun_u[2], gain_th, B);
+    img_regression_linear (mem_fun_u[2], gain_th*maxGain, B);
     //Use B to compute a new gain_field_g[]
     compute_linear_fit_img (B, gain_field_g);
   }
   else if (gain_fit_option == 2) {
-    img_regression_quadratic (mem_fun_u[2], gain_th, B);
+    img_regression_quadratic (mem_fun_u[2], gain_th*maxGain, B);
     //Use B to compute a new gain_field_g[]
     compute_quadratic_fit_img (B, gain_field_g);
   }
@@ -653,7 +666,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     }    
   }
 
-  // vcl_printf ("max_value %f (conv_th %f).\n", max_value, conv_thresh);
+  std::cout << "max_value " << max_value << " (conv_th " << conv_thresh << ").\n";
 
   if (max_value < conv_thresh)
     return true;
@@ -808,6 +821,13 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     }
   }
 
+  typename itk::ImageFileWriter<InputImageType>::Pointer w = itk::ImageFileWriter<InputImageType>::New();        
+  char filename[128];
+  sprintf( filename, "reg%03d.mha", 10 );
+  w->SetFileName( filename );
+  w->SetInput( image );
+  w->Update();
+  
   vcl_printf ("      # pixels > thresh (%f) = %d\n", thresh, SZ);
 
   vnl_matrix<double> y (SZ,1);
@@ -1396,61 +1416,43 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                         int& nBin)
 {
   // vcl_printf ("compute_histogram(): \n");
-
-  typedef itk::Vector< float, 1 > MeasurementVectorType ;
-  typedef itk::Statistics::ListSample < MeasurementVectorType > ListType;
-  
-  ListType::Pointer list = ListType::New();
-  list->SetMeasurementVectorSize( 1 );
-  list->Clear();
-
-  itk::ImageRegionIteratorWithIndex<InputImageType> it0( image, image->GetLargestPossibleRegion() );
-  for ( it0.GoToBegin(); !it0.IsAtEnd(); ++it0) 
-  {
-    typename InputImageType::IndexType idx = it0.GetIndex();
-    if ( !this->m_ImageMask )
-    {
-      list->PushBack( static_cast<float>( it0.Get() ) );
-    }
-    else if ( this->m_ImageMask->GetPixel(idx) != 0 )
-    {
-      list->PushBack( static_cast<float>( it0.Get() ) );
-    }
-  }
-  
   typedef itk::Statistics::ScalarImageToHistogramGenerator<InputImageType> GeneratorType;
   typename GeneratorType::Pointer generator = GeneratorType::New();
   typedef typename GeneratorType::HistogramType  HistogramType;
 
   // let the program decide the number of bins 
   // using the maximum and minimum intensity values
-  if (nBin == 0) {
-    typedef itk::ImageRegionIteratorWithIndex< InputImageType > IteratorType;
-    IteratorType it (image, image->GetLargestPossibleRegion());
-    typename InputImageType::PixelType bMin = it.Get();
-    typename InputImageType::PixelType bMax = it.Get();
-
-    for ( it.GoToBegin(); !it.IsAtEnd(); ++it) {
-      typename InputImageType::IndexType idx = it0.GetIndex();
-      if ( this->m_ImageMask )
-      {
-        if ( this->m_ImageMask->GetPixel(idx) == 0 )
+  if (nBin == 0) 
+    {
+      typedef itk::ImageRegionIteratorWithIndex< InputImageType > IteratorType;
+      IteratorType it (image, image->GetLargestPossibleRegion());
+      typename InputImageType::PixelType bMin = it.Get();
+      typename InputImageType::PixelType bMax = it.Get();
+      
+      for ( it.GoToBegin(); !it.IsAtEnd(); ++it) 
         {
-          continue;
+          typename InputImageType::IndexType idx = it.GetIndex();
+          if ( this->m_ImageMask )
+            {
+              if ( this->m_ImageMask->GetPixel(idx) == 0 )
+                {
+                  continue;
+                }
+            }
+          
+          typename InputImageType::PixelType d = it.Get();
+          if (bMin > d ) 
+            {
+              bMin = d;
+            }
+          if (bMax < d) 
+            {
+              bMax = d;
+            }
         }
-      }
-
-      typename InputImageType::PixelType d = it.Get();
-      if (bMin > d ) {
-        bMin = d;
-      }
-      if (bMax < d) {
-        bMax = d;
-      }
+      nBin = static_cast<int> (bMax-bMin+1);
     }
-    nBin = static_cast<int> (bMax-bMin+1);
-  }
-
+  
   generator->SetInput (image);
   generator->SetNumberOfBins (static_cast<unsigned int>(nBin));
   generator->SetMarginalScale (10.0);
@@ -1464,17 +1466,18 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   binMin.clear();
 
   ///debug: // vcl_printf ("\n");
-  for (unsigned int k = 0; k < hs; k++) {
-    float hist_v = histogram->GetFrequency(k, 0);
-    float bin_min = histogram->GetBinMin(0, k);
-    float bin_max = histogram->GetBinMax(0, k);
-    binMin.push_back (bin_min);
-    binMax.push_back (bin_max);
-    histVector.push_back (hist_v);
-    vcl_printf ("h(%.1f,%.1f)=%.0f ", bin_min, bin_max, hist_v);
-    if (k % 3 == 0)
-      vcl_printf ("\n");
-  }
+  for (unsigned int k = 0; k < hs; k++) 
+    {
+      float hist_v = histogram->GetFrequency(k, 0);
+      float bin_min = histogram->GetBinMin(0, k);
+      float bin_max = histogram->GetBinMax(0, k);
+      binMin.push_back (bin_min);
+      binMax.push_back (bin_max);
+      histVector.push_back (hist_v);
+      vcl_printf ("h(%.1f,%.1f)=%.0f ", bin_min, bin_max, hist_v);
+      if (k % 3 == 0)
+        vcl_printf ("\n");
+    }
   vcl_printf ("\t done.\n");
 }
 

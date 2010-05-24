@@ -1040,10 +1040,10 @@ int main( int argc, char *argv[] )
     }
   }
 
-  //itk::ImageFileWriter<ImageType>::Pointer rasImage = itk::ImageFileWriter<ImageType>::New();
-  //rasImage->SetFileName( "oimage.mhd" );
-  //rasImage->SetInput( outImage );
-  //rasImage->Update( );
+  itk::ImageFileWriter<ImageType>::Pointer rasImage = itk::ImageFileWriter<ImageType>::New();
+  rasImage->SetFileName( "oimage.mhd" );
+  rasImage->SetInput( outImage );
+  rasImage->Update( );
   
 
   // figure out the top of the head
@@ -1333,6 +1333,26 @@ int main( int argc, char *argv[] )
     csf->SetPixel( idx, csf0/g ); 
     gm->SetPixel( idx, gm0/g ); 
     wm->SetPixel( idx, wm0/g ); 
+  }
+
+  std::cout << "Class centers:\n";
+  std::cout << classcenter[0] << ", " << classcenter[1] << ", " << classcenter[2] << std::endl;
+
+  // output initial extrapolated segmentation
+  itk::ImageFileWriter<FloatImageType>::Pointer fWriter = itk::ImageFileWriter<FloatImageType>::New();
+
+  {
+    fWriter->SetInput( csf );
+    fWriter->SetFileName( "csf.mha" );
+    fWriter->Update();
+
+    fWriter->SetInput( gm );
+    fWriter->SetFileName( "gm.mha" );
+    fWriter->Update();
+
+    fWriter->SetInput( wm );
+    fWriter->SetFileName( "wm.mha" );
+    fWriter->Update();
   }
 
   for (itImg.GoToBegin(); !itImg.IsAtEnd(); ++itImg)
@@ -1702,8 +1722,6 @@ int main( int argc, char *argv[] )
       finalLabel->SetPixel( idx, 3 );
     }
   }
-
-  itk::ImageFileWriter<FloatImageType>::Pointer fWriter = itk::ImageFileWriter<FloatImageType>::New();
 
   if (csfMemberShip.find(".") != std::string::npos)
   {
