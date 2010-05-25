@@ -1465,7 +1465,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   binMax.clear();
   binMin.clear();
 
-  ///debug: // vcl_printf ("\n");
+  //debug: // vcl_printf ("\n"); 
   for (unsigned int k = 0; k < hs; k++) 
     {
       float hist_v = histogram->GetFrequency(k, 0);
@@ -1474,11 +1474,12 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
       binMin.push_back (bin_min);
       binMax.push_back (bin_max);
       histVector.push_back (hist_v);
-      vcl_printf ("h(%.1f,%.1f)=%.0f ", bin_min, bin_max, hist_v);
-      if (k % 3 == 0)
-        vcl_printf ("\n");
+      //vcl_printf ("h(%.1f,%.1f)=%.0f ", bin_min, bin_max, hist_v);
+      //if (k % 3 == 0)
+      //  vcl_printf ("\n");
     }
-  vcl_printf ("\t done.\n");
+  // vcl_printf ("\t done.\n");
+ 
 }
 
 template <class TInputImage, class TOutputImage>
