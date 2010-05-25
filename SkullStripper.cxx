@@ -31,7 +31,6 @@
 #include "itkBinaryErodeImageFilter.h"
 #include "itkExtractImageFilter.h"
 #include "itkLinearInterpolateImageFunction.h"
-#include "itkBinaryBallStructuringElement.h"
 
 #include "itkScalarImageToHistogramGenerator.h"
 #include "itkFuzzyClassificationImageFilter.h"
@@ -39,8 +38,10 @@
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkConnectedComponentImageFilter.h"
 #include "itkRelabelComponentImageFilter.h"
-
-#include "itkSignedMaurerDistanceMapImageFilter.h"
+#include "itkBinaryBallStructuringElement.h"
+#include "itkGrayscaleMorphologicalClosingImageFilter.h"
+#include "itkGrayscaleMorphologicalOpeningImageFilter.h"
+#include "itkGrayscaleFunctionErodeImageFilter.h"
 
 #include "vtkSphereSource.h"
 #include "vtkPolyDataMapper.h"
@@ -389,8 +390,6 @@ ImageType::PixelType FindWhiteMatterPeak ( HistogramType::Pointer histogram )
   {
     intensity[k] =  histogram -> GetBinMin( 0, k );
     frequency[k] =  histogram->GetFrequency ( k );
-    std::cout << histogram -> GetFrequency( k ) << std::endl;
-    std::cout << histogram -> GetBinMin( 0, k ) << std::endl;
   }
 
   // suppress the backgroud values
@@ -407,7 +406,6 @@ ImageType::PixelType FindWhiteMatterPeak ( HistogramType::Pointer histogram )
       d += static_cast<double> (frequency[k+m]);
     }
     smoothedfrequency[k] = static_cast<unsigned long> ( d/5 );
-    std::cout << intensity[k] << " " << smoothedfrequency[k] << std::endl;
   }
 
   return t95;
@@ -1067,12 +1065,31 @@ int main( int argc, char *argv[] )
   extract->SetExtractionRegion( region );
   extract->Update();
 
-  //itk::ImageFileWriter<ImageType>::Pointer extImage = itk::ImageFileWriter<ImageType>::New();
-  //extImage->SetFileName( "eimage.mhd" );
-  //extImage->SetInput( extract->GetOutput() );
-  //extImage->Update( );
+  typedef itk::BinaryBallStructuringElement<double, 3> KernelType;
+  typedef itk::GrayscaleFunctionErodeImageFilter< ImageType, ImageType, KernelType>  GrayScaleOpeningFilterType;
+  //  typedef itk::GrayscaleMorphologicalOpeningImageFilter< ImageType, ImageType, KernelType>  GrayScaleOpeningFilterType;
+
+  GrayScaleOpeningFilterType::Pointer grayopening = GrayScaleOpeningFilterType::New();
+  grayopening->SetInput( outImage );
+
+  // Create the structuring element
+  KernelType ball0;
+  KernelType::SizeType ballSize0;
+  ballSize0[0] = 1;
+  ballSize0[1] = 1;
+  ballSize0[2] = 1;
+  ball0.SetRadius(ballSize0);
+  ball0.CreateStructuringElement();
+  
+  grayopening->SetKernel( ball0 );
+  grayopening->Update();
 
   ImageType::Pointer image = outImage;
+//   itk::ImageFileWriter<ImageType>::Pointer extImage = itk::ImageFileWriter<ImageType>::New();
+//   extImage->SetFileName( "ImageOpened.mha" );
+//   extImage->SetInput( image );
+//   extImage->Update( );
+
   spacing = image->GetSpacing();
 
   // initialize label image
@@ -1335,6 +1352,28 @@ int main( int argc, char *argv[] )
     wm->SetPixel( idx, wm0/g ); 
   }
 
+  // grayscale morphological closing on csf
+  typedef itk::BinaryBallStructuringElement<double, 3> KernelType;
+  typedef itk::GrayscaleMorphologicalClosingImageFilter< FloatImageType, FloatImageType, KernelType> 
+    GrayScaleClosingFilterType;
+
+  GrayScaleClosingFilterType::Pointer grayclosing = GrayScaleClosingFilterType::New();
+  grayclosing->SetInput( csf );
+
+  // Create the structuring element
+  KernelType ball;
+  KernelType::SizeType ballSize;
+  ballSize[0] = 2;
+  ballSize[1] = 2;
+  ballSize[2] = 2;
+  ball.SetRadius(ballSize);
+  ball.CreateStructuringElement();
+  
+  grayclosing->SetKernel( ball );
+  grayclosing->Update();
+
+
+
   std::cout << "Class centers:\n";
   std::cout << classcenter[0] << ", " << classcenter[1] << ", " << classcenter[2] << std::endl;
 
@@ -1342,6 +1381,10 @@ int main( int argc, char *argv[] )
   itk::ImageFileWriter<FloatImageType>::Pointer fWriter = itk::ImageFileWriter<FloatImageType>::New();
 
   {
+    fWriter->SetInput( grayclosing->GetOutput() );
+    fWriter->SetFileName( "csfclosing.mha" );
+    fWriter->Update();
+
     fWriter->SetInput( csf );
     fWriter->SetFileName( "csf.mha" );
     fWriter->Update();
@@ -1355,9 +1398,26 @@ int main( int argc, char *argv[] )
     fWriter->Update();
   }
 
+  // threshold on WM membership function to get a "core" of WM.
+  LabelImageType::Pointer WMCore = LabelImageType::New();
+  WMCore->CopyInformation( wm );
+  WMCore->SetRegions( wm->GetLargestPossibleRegion() );
+  WMCore->Allocate();
+
   for (itImg.GoToBegin(); !itImg.IsAtEnd(); ++itImg)
   {
     ImageType::IndexType idx = itImg.GetIndex();
+
+    // assign WM core
+    if (wm->GetPixel(idx) > 0.8)
+      {
+        WMCore->SetPixel( idx, 1 );
+      }
+    else
+      {
+        WMCore->SetPixel( idx, 0 );
+      }
+    
     float p = csf->GetPixel(idx);
     p += p; p -= wm->GetPixel(idx); p -= gm->GetPixel(idx);
 
@@ -1372,6 +1432,21 @@ int main( int argc, char *argv[] )
     itImg.Set( static_cast<ImageType::PixelType>(p) );
   }
 
+  // output WMCore
+  itk::ImageFileWriter<LabelImageType>::Pointer wLabel = itk::ImageFileWriter<LabelImageType>::New();
+  wLabel->SetInput( WMCore );
+  wLabel->SetFileName( "WMCore.mha" );
+  wLabel->Update();
+
+  // compute distance tranfrom from WMCore, this will be used to limit deformation
+  typedef itk::SignedMaurerDistanceMapImageFilter<LabelImageType, FloatImageType> DistanceTransformType;  
+  DistanceTransformType::Pointer distWMCore = DistanceTransformType::New();
+  distWMCore->SetInput( WMCore );
+  distWMCore->Update();
+  fWriter->SetInput( distWMCore->GetOutput() );
+  fWriter->SetFileName( "wmdist.mha" );
+  fWriter->Update();
+  
   // do iteration
 
   double radiusMin = 3.33;
@@ -1382,16 +1457,16 @@ int main( int argc, char *argv[] )
 
   int iter = 0;
   int nSearchPoints = 40;
-  double stepSize = 0.5;
+  double stepSizeConst = 0.5;
   double relaxFactor = 0.75;
 
   std::vector<ImageType::PixelType> IntensityOnLine(nSearchPoints);
 
 
-  double change = 0;
-  double change1 = 0;
-  double change2 = 0;
-  double change3 = 0;
+  double change = 0.5;
+  double change1 = 0.5;
+  double change2 = 0.5;
+  double change3 = 0.5;
 
   float lThreshold = (classcenter[0]+classcenter[1])/2;
   float uThreshold = (classcenter[2]+2*classstd[2]);
@@ -1414,8 +1489,12 @@ int main( int argc, char *argv[] )
   itk::LinearInterpolateImageFunction< FloatImageType, double >::Pointer gmInterpolator = 
     itk::LinearInterpolateImageFunction< FloatImageType, double >::New();
 
+  itk::LinearInterpolateImageFunction< FloatImageType, double >::Pointer wmDistInterpolator = 
+    itk::LinearInterpolateImageFunction< FloatImageType, double >::New();
+
   fInterpolator->SetInputImage( feature );
   wInterpolator->SetInputImage( featureWM );
+  wmDistInterpolator->SetInputImage( distWMCore->GetOutput() );
   csfInterpolator->SetInputImage( csf );
   gmInterpolator->SetInputImage( gm );
   wmInterpolator->SetInputImage( wm );
@@ -1436,7 +1515,12 @@ int main( int argc, char *argv[] )
     {
       break;
     }
-    if (change > 0 && change1 > 0 && change2 > 0 && change3 > 0 && (2*change/(change1+change3)) < 0.05)
+//     if (change > 0 && change1 > 0 && change2 > 0 && change3 > 0 && (2*change/(change1+change3)) < 0.05)
+//     {
+//       break;
+//     }
+
+    if (change < 0.01 || change1 < 0.001 || change2 < 0.001 || change3 < 0.5)
     {
       break;
     }
@@ -1530,22 +1614,23 @@ int main( int argc, char *argv[] )
       difftangent[1] = diffvector[1]-diffnormal[1];
       difftangent[2] = diffvector[2]-diffnormal[2];
 
-      update1[0] = difftangent[0]*0.5*stepSize;
-      update1[1] = difftangent[1]*0.5*stepSize;
-      update1[2] = difftangent[2]*0.5*stepSize;
+      update1[0] = difftangent[0]*0.5*stepSizeConst;
+      update1[1] = difftangent[1]*0.5*stepSizeConst;
+      update1[2] = difftangent[2]*0.5*stepSizeConst;
 
       double radiusOfCurvature = fabs(averageEdgeLength*averageEdgeLength/2.0);
       radiusOfCurvature /= normalcomponent;
       double w2 = 0.5*(1.0+tanh(F*(1/radiusOfCurvature-E)));
 
-      update2[0] = 0.25*w2*diffnormal[0]*stepSize;
-      update2[1] = 0.25*w2*diffnormal[1]*stepSize;
-      update2[2] = 0.25*w2*diffnormal[2]*stepSize;
+      update2[0] = 0.05*w2*diffnormal[0]*stepSizeConst;
+      update2[1] = 0.05*w2*diffnormal[1]*stepSizeConst;
+      update2[2] = 0.05*w2*diffnormal[2]*stepSizeConst;
       
       // xk = pc is a physical point
+      double stepSize = stepSizeConst;
       for (int d = -LeftBound; d <= RightBound; d++)
       {
-        ImageType::PointType point;  
+        ImageType::PointType point;
 
         // set point values
         for( int m = 0; m <3; m ++)
@@ -1554,6 +1639,26 @@ int main( int argc, char *argv[] )
         }
         itk::ContinuousIndex<double, 3> cidx;    
         image->TransformPhysicalPointToContinuousIndex( point, cidx );
+
+        // modify stepsize based on where the current point sit relative to the WM Core
+//         if ( static_cast<float>(iter) > static_cast<float>(nIterations)*0.5 )
+//           {
+//             if (d == 0)  // current point
+//               {
+//                 double wmDist = wmDistInterpolator->EvaluateAtContinuousIndex( cidx );
+//                 if (wmDist > 25)
+//                   {
+//                     wmDist = (wmDist-25)*(wmDist-25)/9;
+//                   }
+//                 else
+//                   {
+//                     wmDist = (wmDist-25)*(25-wmDist)/9;
+//                   }
+//                 wmDist = 1.0-1.0/(1.0+exp(wmDist));
+//                 //stepSize = stepSizeConst*wmDist;
+//               }
+//           }
+
         if (image->GetLargestPossibleRegion().IsInside(cidx))
         {
           imgProfile[d+LeftBound] = static_cast<float>( imgInterpolator->EvaluateAtContinuousIndex( cidx ) );
@@ -1582,9 +1687,9 @@ int main( int argc, char *argv[] )
 
       for ( int d = 0; d <=RightBound; d++ )
       {
+
         int i = d+LeftBound;
-      double tanhvalue = tanh((static_cast <float> (imgProfile[i])-lThreshold)/(lThreshold/4));
-        //double tanhvalue = tanh((static_cast <float> (value*24)/static_cast <float> (t98))-4);
+        double tanhvalue = tanh((static_cast <float> (imgProfile[i])-lThreshold)/(lThreshold/4));
         imageforceiter = (0 < tanhvalue ? tanhvalue : 0);
         if ( iter > 50 && imageforceiter == 0)
         {
@@ -1597,7 +1702,6 @@ int main( int argc, char *argv[] )
 
         //take care of areas around eyes 
         double tanhvalue2 = tanh((static_cast <float> (imgProfile[i])-uThreshold)/(uThreshold/4));
-        //double tanhvalue2 = tanh((static_cast <float> (value*6)/static_cast <float> (t98))-4);
         if ( tanhvalue2 > 0 )
         {
           imageforce = -(fabs(imageforce));
@@ -1615,36 +1719,61 @@ int main( int argc, char *argv[] )
       update3[1] = imageforce*normal[1];
       update3[2] = imageforce*normal[2];
             
-      if ( iter > 1000 )
-        {
-        update[0] = update1[0]+update2[0]+update3[0]*0.75;
-        update[1] = update1[1]+update2[1]+update3[1]*0.75;
-        update[2] = update1[2]+update2[2]+update3[2]*0.75;
-        }
-      else
-        {
-        update[0] = (update1[0]+update2[0])+update3[0];
-        update[1] = (update1[1]+update2[1])+update3[1];
-        update[2] = (update1[2]+update2[2])+update3[2];
-        }
-
+      update[0] = (update1[0]*1.0+update2[0]*1.0)+update3[0];
+      update[1] = (update1[1]*1.0+update2[1]*1.0)+update3[1];
+      update[2] = (update1[2]*1.0+update2[2]*1.0)+update3[2];
+      
       pc[0] += update[0];
       pc[1] += update[1];
       pc[2] += update[2];
 
       allPoints->SetPoint( k, pc[0], pc[1], pc[2] );
 
-      change += sqrt(update[0]*update[0]+update[1]*update[1]+update[2]*update[2]);
-      change1 += sqrt(update1[0]*update1[0]+update1[1]*update1[1]+update1[2]*update1[2]);
-      change2 += sqrt(update2[0]*update2[0]+update2[1]*update2[1]+update2[2]*update2[2]);
-      change3 += sqrt(update3[0]*update3[0]+update3[1]*update3[1]+update3[2]*update3[2]);
+      double changeInNormalDirection = (update[0]*normal[0]+update[1]*normal[1]+update[2]*normal[2]);
+      change += fabs(changeInNormalDirection);
+      if (changeInNormalDirection >= 0)
+        {
+          change1 += changeInNormalDirection;
+          change3 += 1.0;
+        }
+      else
+        {
+          change2 += -changeInNormalDirection;
+        }
+      //      change += sqrt(update[0]*update[0]+update[1]*update[1]+update[2]*update[2]);
+      //      change1 += sqrt(update1[0]*update1[0]+update1[1]*update1[1]+update1[2]*update1[2]);
+      //      change2 += sqrt(update2[0]*update2[0]+update2[1]*update2[1]+update2[2]*update2[2]);
+      //      change3 += sqrt(update3[0]*update3[0]+update3[1]*update3[1]+update3[2]*update3[2]);
 
       }
 
-      if (iter % 25 == 0)
+    change /= static_cast<float>( nPoints );
+    change1 /= change3;
+    change2 /= (static_cast<float>( nPoints ) - change3);
+    
+    change3 = fabs( change1*change3/(change2*(static_cast<float>( nPoints ) - change3) ) );
+    if (change3 > 10)
+      {
+        stepSizeConst *= 1.2;
+      } 
+    else if (change3 < 5)
+      {
+        stepSizeConst *= 0.75;
+      }
+
+    if (stepSizeConst > 1.0)
+      {
+        stepSizeConst = 1.0;
+      }
+    if (stepSizeConst < 0.25)
+      {
+        stepSizeConst = 0.25;
+      }
+
+    if (iter % 25 == 0)
       {
         std::cout << "EOI " << iter << ": ";
-      std::cout << "  C = " << change <<  "  C1 = " << change1 <<  "  C2 = " << change2 <<  "  C3 = " << change3 << std::endl;
+      std::cout << "  S = " << stepSizeConst << "  C = " << change <<  "  Outwards = " << change1 <<  " Inwards = " << change2 <<  " O/I = " << change3 << std::endl;
       }
 
       iter++;
