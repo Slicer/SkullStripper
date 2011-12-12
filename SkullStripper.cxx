@@ -10,7 +10,6 @@
 
 #include "itkPoint.h"
 #include "itkImage.h"
-#include "itkOrientedImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageSeriesReader.h"
 #include "itkImageFileWriter.h"
@@ -97,9 +96,9 @@ typedef std::vector<vtkIdType> NeighborhoodType;
 
 const unsigned int ImageDimension = 3;
 typedef signed short PixelType;
-typedef itk::OrientedImage< PixelType, ImageDimension > ImageType;
-typedef itk::OrientedImage<unsigned char, ImageDimension> LabelImageType;
-typedef itk::OrientedImage<double, ImageDimension> FloatImageType;
+typedef itk::Image< PixelType, ImageDimension > ImageType;
+typedef itk::Image<unsigned char, ImageDimension> LabelImageType;
+typedef itk::Image<double, ImageDimension> FloatImageType;
 typedef itk::ImageFileReader< ImageType  > ImageReaderType;
 
 typedef float        HistogramMeasurementType;
