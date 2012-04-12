@@ -1,33 +1,60 @@
-PROJECT(SkullStripper)
+cmake_minimum_required(VERSION 2.8.7)
 
-cmake_minimum_required(VERSION 2.4)
+#-----------------------------------------------------------------------------
+set(MODULE_NAME SkullStripper) # Do not use 'project()'
 
-include_directories( ${SlicerBaseCLI_BINARY_DIR} ${SlicerBaseCLI_SOURCE_DIR} )
+#-----------------------------------------------------------------------------
+set(MODULE_HOMEPAGE "http://www.slicer.org/slicerWiki/index.php/Documentation/4.1/Modules/${MODULE_NAME}")
+set(MODULE_CATEGORY "Segmentation")
+set(MODULE_ICONURL "http://viewvc.slicer.org/viewvc.cgi/Slicer4/trunk/Extensions/Testing/CLIExtensionTemplate/CLIExtensionTemplate.png?revision=19437&view=co")
+set(MODULE_STATUS "Beta")
+set(MODULE_CONTRIBUTORS "Xiaodong Tao (GE)")
+set(MODULE_DESCRIPTION "Skull stripping for structural MR images of the brain, tested on T1 and T2 contrast.")
+set(MODULE_SCREENSHOTURLS "http://wiki.slicer.org/slicerWiki/images/a/ab/Slicer-r19441-CLIExtensionTemplate-screenshot.png http://wiki.slicer.org/slicerWiki/images/1/1e/Slicer-r19441-CLIExtensionTemplate-screenshot-2.png")
+set(MODULE_ACKNOWLEDGEMENTS "This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.")
+set(MODULE_MAJOR_VERSION 0)
+set(MODULE_MINOR_VERSION 1)
+set(MODULE_PATCH_VERSION 0)
 
-link_directories(${ModuleDescriptionParser_BINARY_DIR})
-link_directories(${SlicerBaseCLI_BINARY_DIR})
+#-----------------------------------------------------------------------------
+if(NOT Slicer_SOURCE_DIR)
+  find_package(Slicer REQUIRED)
+  include(${Slicer_USE_FILE})
+endif()
 
-FIND_PACKAGE(Slicer3 REQUIRED NO_DEFAULT_PATH)
+# Configure XML description
+configure_file(
+  ${MODULE_NAME}.xml.in
+  ${CMAKE_CURRENT_BINARY_DIR}/${MODULE_NAME}.xml
+  @ONLY
+  )
 
-IF (Slicer3_FOUND)
-  include(${Slicer3_USE_FILE})
-  slicer3_set_default_install_prefix_for_external_projects()
+#-----------------------------------------------------------------------------  
+set(cli_module_target_libraries
+  ${ITK_LIBRARIES}
+  ${VTK_LIBRARIES}
+  )
+  
+set(cli_module_SRCS
+  itkFuzzyClassificationImageFilter.h
+  itkFuzzyClassificationImageFilter.txx
+  )
 
-  SET (CLP SkullStripper)
+#-----------------------------------------------------------------------------
+slicerMacroBuildCLI(
+  NAME ${MODULE_NAME}
+  TARGET_LIBRARIES ${cli_module_target_libraries}
+  ADDITIONAL_SRCS ${cli_module_SRCS}
+  )
 
-  set ( ${CLP}_SOURCE ${CLP}.cxx)
-  generateclp(${CLP}_SOURCE ${CLP}.xml)
-  add_executable(${CLP} ${${CLP}_SOURCE})
-  target_link_libraries (${CLP} ITKCommon ITKNumerics ITKNrrdIO ITKIO ITKStatistics vtkIO vtkCommon vtkFiltering vtkGraphics vtkRendering)
+#-----------------------------------------------------------------------------
+if(BUILD_TESTING)
+#  add_subdirectory(Testing)
+endif()
 
-  slicer3_set_plugins_output_path(SkullStripper)
-  slicer3_install_plugins(SkullStripper)
+#-----------------------------------------------------------------------------
+if(NOT Slicer_SOURCE_DIR)
+  include(${Slicer_EXTENSION_CPACK})
+endif()
 
-ELSE (Slicer3_FOUND)
-
-MESSAGE(WARNING "Cannot build with a Slicer3 build tree or a Slicer3 installation. Please set Slicer3_DIR. If using a Slicer3 build, Slicer3_DIR needs to be set to the root of the build tree of Slicer3.  If using an installation of Slicer3, Slicer3_DIR needs to be set to <SlicerInstallation>/lib/Slicer3.")
-
-ENDIF (Slicer3_FOUND)
-
-################################################
 

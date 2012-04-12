@@ -1,17 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <executable>
-  <category>Segmentation</category>
-  <title>Skull Stripper for Structural MR</title>
-  <description>
-    Skull stripping for structural MR images of the brain, tested on T1 and T2 contrast.
-  </description>
-  <version>3.0</version>
-  <documentation-url>http://www.slicer.org</documentation-url>
-  <license>slicer3</license>
+  <category>@EXTENSION_CATEGORY@</category>
+  <title>@EXTENSION_NAME@</title>
+  <description><![CDATA[@EXTENSION_DESCRIPTION@]]></description>
+  <version>@EXTENSION_MAJOR_VERSION@.@EXTENSION_MINOR_VERSION@.@EXTENSION_PATCH_VERSION@-@EXTENSION_STATUS@</version>
+  <documentation-url>@EXTENSION_HOMEPAGE@</documentation-url>
+  <license>@EXTENSION_LICENSE_SHORT_DESCRIPTION@</license>
   <contributor>Xiaodong Tao, taox @ research . ge . com</contributor>
-  <acknowledgements>
-    This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
-  </acknowledgements>
+  <acknowledgements><![CDATA[@EXTENSION_ACKNOWLEDGEMENTS@]]></acknowledgements>
   <parameters>
     <label>IO</label>
     <description>Input/output parameters</description>
