@@ -6,7 +6,7 @@ set(MODULE_NAME SkullStripper) # Do not use 'project()'
 #-----------------------------------------------------------------------------
 set(MODULE_HOMEPAGE "http://www.slicer.org/slicerWiki/index.php/Documentation/4.1/Modules/${MODULE_NAME}")
 set(MODULE_CATEGORY "Segmentation")
-set(MODULE_ICONURL "http://viewvc.slicer.org/viewvc.cgi/Slicer4/trunk/Extensions/Testing/CLIExtensionTemplate/CLIExtensionTemplate.png?revision=19437&view=co")
+set(MODULE_ICONURL "http://www.slicer.org/slicerWiki/images/f/f2/SkullStripper.png")
 set(MODULE_STATUS "Beta")
 set(MODULE_CONTRIBUTORS "Xiaodong Tao (GE)")
 set(MODULE_DESCRIPTION "Skull stripping for structural MR images of the brain, tested on T1 and T2 contrast.")
