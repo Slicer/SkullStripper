@@ -324,7 +324,7 @@ int FindTopSlice( ImageType::Pointer fixed )
       nVoxels[idx[2]] += 1;
     }
   }
-  for (::size_t k = 0; k < size[2]; k++)
+  for (ImageType::SizeType::SizeValueType k = 0; k < size[2]; k++)
   {
     projection[k] /= nVoxels[k];
   }
@@ -385,7 +385,7 @@ ImageType::PixelType FindWhiteMatterPeak ( HistogramType::Pointer histogram )
   std::vector<ImageType::PixelType> intensity( size[0] );
   std::vector<float> frequency( size[0] );
 
-  for (::size_t k = 0; k < size[0]; k++)
+  for (unsigned int k = 0; k < size[0]; k++)
   {
     intensity[k] =  histogram -> GetBinMin( 0, k );
     frequency[k] =  histogram->GetFrequency ( k );
@@ -396,15 +396,15 @@ ImageType::PixelType FindWhiteMatterPeak ( HistogramType::Pointer histogram )
   frequency[1] = 0;
 
   // do simple five point average
-  std::vector<unsigned long> smoothedfrequency( size[0] );
-  for (::size_t k = 2; k < size[0]-2; k++)
+  std::vector<unsigned int> smoothedfrequency( size[0] );
+  for (unsigned int k = 2; k < size[0]-2; k++)
   {
     double d = 0;
     for (int m = -2; m <=2; m++)
     {
       d += static_cast<double> (frequency[k+m]);
     }
-    smoothedfrequency[k] = static_cast<unsigned long> ( d/5 );
+    smoothedfrequency[k] = static_cast<unsigned int> ( d/5 );
   }
 
   return t95;
@@ -1137,14 +1137,14 @@ int main( int argc, char *argv[] )
     ImageType::IndexType idx = itCrop.GetIndex();
     ImageType::PointType point;
     image->TransformIndexToPhysicalPoint( idx, point );
-    for (::size_t k = 0; k < ImageDimension; k++)
+    for (unsigned int k = 0; k < ImageDimension; k++)
       {
       COG[k] += point[k];
       }
     }
   
   float HeadVolume = static_cast<float>( HeadVoxelCount );
-  for (::size_t k = 0; k < ImageDimension; k++)
+  for (unsigned int k = 0; k < ImageDimension; k++)
     {
     COG[k] /= static_cast<float>( HeadVoxelCount );
     HeadVolume *= spacing[k];
@@ -1174,7 +1174,8 @@ int main( int argc, char *argv[] )
   PixelType tNonBackground = static_cast<PixelType>(0.25*static_cast<float>(tinit));
   int xStart = 0;
   int xEnd = 0;
-  for (::size_t k = imageStart[0]; k < imageStart[0]+imageSize[0]; k++)
+  for (ImageType::IndexType::IndexValueType k = imageStart[0]; 
+       k < imageStart[0]+static_cast<ImageType::IndexType::IndexValueType>(imageSize[0]); k++)
   {
     Idx[0] = k;
     if ( image->GetPixel(Idx) > tNonBackground )
@@ -1183,7 +1184,8 @@ int main( int argc, char *argv[] )
       break;
     }
   }
-  for (int k = imageStart[0]+imageSize[0]-1; k >= imageStart[0]; k--)
+  for (ImageType::IndexType::IndexValueType k = imageStart[0]+static_cast<ImageType::IndexType::IndexValueType>(imageSize[0])-1; 
+       k >= imageStart[0]; k--)
   {
     Idx[0] = k;
     if ( image->GetPixel(Idx) > tNonBackground )
@@ -1197,7 +1199,8 @@ int main( int argc, char *argv[] )
   Idx = COGIdx;
   int yStart = 0;
   int yEnd = 0;
-  for (::size_t k = imageStart[1]; k < imageStart[1]+imageSize[1]; k++)
+  for (ImageType::IndexType::IndexValueType k = imageStart[1]; 
+       k < imageStart[1]+static_cast<ImageType::IndexType::IndexValueType>(imageSize[1]); k++)
   {
     Idx[1] = k;
     if ( image->GetPixel(Idx) > tNonBackground )
@@ -1206,7 +1209,8 @@ int main( int argc, char *argv[] )
       break;
     }
   }
-  for (int k = imageStart[1]+imageSize[1]-1; k >= imageStart[1]; k--)
+  for (ImageType::IndexType::IndexValueType k = imageStart[1]+static_cast<ImageType::IndexType::IndexValueType>(imageSize[1])-1;
+       k >= imageStart[1]; k--)
   {
     Idx[1] = k;
     if ( image->GetPixel(Idx) > tNonBackground )
@@ -1219,7 +1223,8 @@ int main( int argc, char *argv[] )
 
   Idx = COGIdx;
   int zEnd=0;
-  for (int k = imageStart[2]+imageSize[2]-1; k >= imageStart[2]; k--)
+  for (ImageType::IndexType::IndexValueType k = imageStart[2]+static_cast<ImageType::IndexType::IndexValueType>(imageSize[2])-1;
+       k >= imageStart[2]; k--)
   {
     Idx[2] = k;
     if ( image->GetPixel(Idx) > tNonBackground )
