@@ -34,17 +34,11 @@ set(cli_module_target_libraries
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}
   )
-  
-set(cli_module_SRCS
-  itkFuzzyClassificationImageFilter.h
-  itkFuzzyClassificationImageFilter.txx
-  )
 
 #-----------------------------------------------------------------------------
 slicerMacroBuildCLI(
   NAME ${MODULE_NAME}
   TARGET_LIBRARIES ${cli_module_target_libraries}
-  ADDITIONAL_SRCS ${cli_module_SRCS}
   )
 
 #-----------------------------------------------------------------------------
