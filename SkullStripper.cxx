@@ -332,7 +332,7 @@ int FindTopSlice( ImageType::Pointer fixed )
   double noiselevel = 0;
   double noiseslice = 0;
   unsigned int topslice=size[2]-1;
-  for (unsigned int k = size[2]-1; k >=0; k--)
+  for (long k = size[2]-1; k >=0; k--)
   {
     if (projection[k] == 0)
     {
