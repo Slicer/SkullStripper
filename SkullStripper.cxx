@@ -1037,12 +1037,6 @@ int main( int argc, char *argv[] )
     }
   }
 
-  itk::ImageFileWriter<ImageType>::Pointer rasImage = itk::ImageFileWriter<ImageType>::New();
-  rasImage->SetFileName( "oimage.mhd" );
-  rasImage->SetInput( outImage );
-  rasImage->Update( );
-  
-
   // figure out the top of the head
   int nTopSlice = FindTopSlice( outImage );
   int nStartSlice = nTopSlice - static_cast<int>(150.0/spacing[2]);
@@ -1084,11 +1078,6 @@ int main( int argc, char *argv[] )
   grayopening->Update();
 
   ImageType::Pointer image = outImage;
-//   itk::ImageFileWriter<ImageType>::Pointer extImage = itk::ImageFileWriter<ImageType>::New();
-//   extImage->SetFileName( "ImageOpened.mha" );
-//   extImage->SetInput( image );
-//   extImage->Update( );
-
   spacing = image->GetSpacing();
 
   // initialize label image
@@ -1381,26 +1370,8 @@ int main( int argc, char *argv[] )
   std::cout << "Class centers:\n";
   std::cout << classcenter[0] << ", " << classcenter[1] << ", " << classcenter[2] << std::endl;
 
-  // output initial extrapolated segmentation
+  // writer for the output images
   itk::ImageFileWriter<FloatImageType>::Pointer fWriter = itk::ImageFileWriter<FloatImageType>::New();
-
-  {
-    fWriter->SetInput( grayclosing->GetOutput() );
-    fWriter->SetFileName( "csfclosing.mha" );
-    fWriter->Update();
-
-    fWriter->SetInput( csf );
-    fWriter->SetFileName( "csf.mha" );
-    fWriter->Update();
-
-    fWriter->SetInput( gm );
-    fWriter->SetFileName( "gm.mha" );
-    fWriter->Update();
-
-    fWriter->SetInput( wm );
-    fWriter->SetFileName( "wm.mha" );
-    fWriter->Update();
-  }
 
   // threshold on WM membership function to get a "core" of WM.
   LabelImageType::Pointer WMCore = LabelImageType::New();
@@ -1436,20 +1407,11 @@ int main( int argc, char *argv[] )
     itImg.Set( static_cast<ImageType::PixelType>(p) );
   }
 
-  // output WMCore
-  itk::ImageFileWriter<LabelImageType>::Pointer wLabel = itk::ImageFileWriter<LabelImageType>::New();
-  wLabel->SetInput( WMCore );
-  wLabel->SetFileName( "WMCore.mha" );
-  wLabel->Update();
-
   // compute distance tranfrom from WMCore, this will be used to limit deformation
   typedef itk::SignedMaurerDistanceMapImageFilter<LabelImageType, FloatImageType> DistanceTransformType;  
   DistanceTransformType::Pointer distWMCore = DistanceTransformType::New();
   distWMCore->SetInput( WMCore );
   distWMCore->Update();
-  fWriter->SetInput( distWMCore->GetOutput() );
-  fWriter->SetFileName( "wmdist.mha" );
-  fWriter->Update();
   
   // do iteration
 
