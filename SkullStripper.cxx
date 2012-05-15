@@ -157,66 +157,6 @@ LabelImageType::Pointer BinaryClosingFilter3D ( LabelImageType::Pointer & img , 
   return BinaryErodeFilter3D( imgDilate, ballsize );
 }
 
-
-void ComputeHistogram (ImageType::Pointer& image, 
-                  ImageType::PixelType bkgroundThreshold,
-                  vcl_vector<float>& histVector,
-                  vcl_vector<float>& binMax,
-                  vcl_vector<float>& binMin,
-                  int& nBin)
-{
-  
-  typedef itk::Statistics::ScalarImageToHistogramGenerator<ImageType> GeneratorType;
-  GeneratorType::Pointer generator = GeneratorType::New();
-  typedef GeneratorType::HistogramType  HistogramType;
-
-  // let the program decide the number of bins 
-  // using the maximum and minimum intensity values
-  if (nBin == 0) {
-    typedef itk::ImageRegionIteratorWithIndex< ImageType > IteratorType;
-    IteratorType it (image, image->GetLargestPossibleRegion());
-    ImageType::PixelType bMin = it.Get();
-    ImageType::PixelType bMax = it.Get();
-
-    for ( it.GoToBegin(); !it.IsAtEnd(); ++it) {
-      ImageType::PixelType d = it.Get();
-      if (bMin > d ) {
-        bMin = d;
-      }
-      if (bMax < d) {
-        bMax = d;
-      }
-    }
-    nBin = static_cast<int> (bMax-bMin+1);
-  }
-
-  generator->SetInput (image);
-  generator->SetNumberOfBins (static_cast<unsigned int>(nBin));
-  generator->SetMarginalScale (10.0);
-  generator->Compute();
-
-  HistogramType::ConstPointer histogram = generator->GetOutput();
-  const unsigned int hs = histogram->Size();
-
-  histVector.clear();
-  binMax.clear();
-  binMin.clear();
-
-  ///debug: // vcl_printf ("\n");
-  for (unsigned int k = 0; k < hs; k++) {
-    float hist_v = histogram->GetFrequency(k, 0);
-    float bin_min = histogram->GetBinMin(0, k);
-    float bin_max = histogram->GetBinMax(0, k);
-    binMin.push_back (bin_min);
-    binMax.push_back (bin_max);
-    histVector.push_back (hist_v);
-    vcl_printf ("h(%.1f,%.1f)=%.0f ", bin_min, bin_max, hist_v);
-    if (k % 3 == 0)
-      vcl_printf ("\n");
-  }
-  vcl_printf ("\t done.\n");
-}
-
 void PolyDataToLabelMap( vtkPolyData* polyData, LabelImageType::Pointer label)
 {
   vtkPolyDataPointSampler* sampler = vtkPolyDataPointSampler::New();
