@@ -281,7 +281,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                         const float low_th, const float high_th,
                         const float bg_thresh,
                         const int gain_fit_option, 
-                        const float gain_th, const float gain_min,
+                        const float gain_th, const float /*gain_min*/,
                         const float conv_thresh,
                         InputImagePointer& gain_field_g,
                         vcl_vector<InputImagePointer>& mem_fun_u, 
@@ -307,7 +307,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     //   Initially, we assume g[]=1 is know and fixed in our case.
     //   Here we update it by a regression fit of the white matter (mem_fun_u[2])
     if (gain_fit_option == 1 || gain_fit_option == 2) {
-      compute_new_gain_field (mem_fun_u, img_y, gain_field_g, 
+      compute_new_gain_field (mem_fun_u, gain_field_g, 
                               gain_fit_option, gain_th);
       
       //debug: save gain field file for debugging.
@@ -595,7 +595,6 @@ template <class TInputImage, class TOutputImage>
 void
 FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 ::compute_new_gain_field (vcl_vector<InputImagePointer>& mem_fun_u, 
-                             InputImagePointer& img_y, 
                              InputImagePointer& gain_field_g,
                              const int gain_fit_option,
                              const float gain_th)

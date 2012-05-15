@@ -157,66 +157,6 @@ LabelImageType::Pointer BinaryClosingFilter3D ( LabelImageType::Pointer & img , 
   return BinaryErodeFilter3D( imgDilate, ballsize );
 }
 
-
-void ComputeHistogram (ImageType::Pointer& image, 
-                  ImageType::PixelType bkgroundThreshold,
-                  vcl_vector<float>& histVector,
-                  vcl_vector<float>& binMax,
-                  vcl_vector<float>& binMin,
-                  int& nBin)
-{
-  
-  typedef itk::Statistics::ScalarImageToHistogramGenerator<ImageType> GeneratorType;
-  GeneratorType::Pointer generator = GeneratorType::New();
-  typedef GeneratorType::HistogramType  HistogramType;
-
-  // let the program decide the number of bins 
-  // using the maximum and minimum intensity values
-  if (nBin == 0) {
-    typedef itk::ImageRegionIteratorWithIndex< ImageType > IteratorType;
-    IteratorType it (image, image->GetLargestPossibleRegion());
-    ImageType::PixelType bMin = it.Get();
-    ImageType::PixelType bMax = it.Get();
-
-    for ( it.GoToBegin(); !it.IsAtEnd(); ++it) {
-      ImageType::PixelType d = it.Get();
-      if (bMin > d ) {
-        bMin = d;
-      }
-      if (bMax < d) {
-        bMax = d;
-      }
-    }
-    nBin = static_cast<int> (bMax-bMin+1);
-  }
-
-  generator->SetInput (image);
-  generator->SetNumberOfBins (static_cast<unsigned int>(nBin));
-  generator->SetMarginalScale (10.0);
-  generator->Compute();
-
-  HistogramType::ConstPointer histogram = generator->GetOutput();
-  const unsigned int hs = histogram->Size();
-
-  histVector.clear();
-  binMax.clear();
-  binMin.clear();
-
-  ///debug: // vcl_printf ("\n");
-  for (unsigned int k = 0; k < hs; k++) {
-    float hist_v = histogram->GetFrequency(k, 0);
-    float bin_min = histogram->GetBinMin(0, k);
-    float bin_max = histogram->GetBinMax(0, k);
-    binMin.push_back (bin_min);
-    binMax.push_back (bin_max);
-    histVector.push_back (hist_v);
-    vcl_printf ("h(%.1f,%.1f)=%.0f ", bin_min, bin_max, hist_v);
-    if (k % 3 == 0)
-      vcl_printf ("\n");
-  }
-  vcl_printf ("\t done.\n");
-}
-
 void PolyDataToLabelMap( vtkPolyData* polyData, LabelImageType::Pointer label)
 {
   vtkPolyDataPointSampler* sampler = vtkPolyDataPointSampler::New();
@@ -332,7 +272,7 @@ int FindTopSlice( ImageType::Pointer fixed )
   double noiselevel = 0;
   double noiseslice = 0;
   unsigned int topslice=size[2]-1;
-  for (unsigned int k = size[2]-1; k >=0; k--)
+  for (long k = size[2]-1; k >=0; k--)
   {
     if (projection[k] == 0)
     {
@@ -1037,12 +977,6 @@ int main( int argc, char *argv[] )
     }
   }
 
-  itk::ImageFileWriter<ImageType>::Pointer rasImage = itk::ImageFileWriter<ImageType>::New();
-  rasImage->SetFileName( "oimage.mhd" );
-  rasImage->SetInput( outImage );
-  rasImage->Update( );
-  
-
   // figure out the top of the head
   int nTopSlice = FindTopSlice( outImage );
   int nStartSlice = nTopSlice - static_cast<int>(150.0/spacing[2]);
@@ -1084,11 +1018,6 @@ int main( int argc, char *argv[] )
   grayopening->Update();
 
   ImageType::Pointer image = outImage;
-//   itk::ImageFileWriter<ImageType>::Pointer extImage = itk::ImageFileWriter<ImageType>::New();
-//   extImage->SetFileName( "ImageOpened.mha" );
-//   extImage->SetInput( image );
-//   extImage->Update( );
-
   spacing = image->GetSpacing();
 
   // initialize label image
@@ -1381,26 +1310,8 @@ int main( int argc, char *argv[] )
   std::cout << "Class centers:\n";
   std::cout << classcenter[0] << ", " << classcenter[1] << ", " << classcenter[2] << std::endl;
 
-  // output initial extrapolated segmentation
+  // writer for the output images
   itk::ImageFileWriter<FloatImageType>::Pointer fWriter = itk::ImageFileWriter<FloatImageType>::New();
-
-  {
-    fWriter->SetInput( grayclosing->GetOutput() );
-    fWriter->SetFileName( "csfclosing.mha" );
-    fWriter->Update();
-
-    fWriter->SetInput( csf );
-    fWriter->SetFileName( "csf.mha" );
-    fWriter->Update();
-
-    fWriter->SetInput( gm );
-    fWriter->SetFileName( "gm.mha" );
-    fWriter->Update();
-
-    fWriter->SetInput( wm );
-    fWriter->SetFileName( "wm.mha" );
-    fWriter->Update();
-  }
 
   // threshold on WM membership function to get a "core" of WM.
   LabelImageType::Pointer WMCore = LabelImageType::New();
@@ -1436,20 +1347,11 @@ int main( int argc, char *argv[] )
     itImg.Set( static_cast<ImageType::PixelType>(p) );
   }
 
-  // output WMCore
-  itk::ImageFileWriter<LabelImageType>::Pointer wLabel = itk::ImageFileWriter<LabelImageType>::New();
-  wLabel->SetInput( WMCore );
-  wLabel->SetFileName( "WMCore.mha" );
-  wLabel->Update();
-
   // compute distance tranfrom from WMCore, this will be used to limit deformation
   typedef itk::SignedMaurerDistanceMapImageFilter<LabelImageType, FloatImageType> DistanceTransformType;  
   DistanceTransformType::Pointer distWMCore = DistanceTransformType::New();
   distWMCore->SetInput( WMCore );
   distWMCore->Update();
-  fWriter->SetInput( distWMCore->GetOutput() );
-  fWriter->SetFileName( "wmdist.mha" );
-  fWriter->Update();
   
   // do iteration
 

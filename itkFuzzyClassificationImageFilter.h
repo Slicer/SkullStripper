@@ -160,7 +160,6 @@ void compute_new_centroids (const vcl_vector<InputImagePointer>& mem_fun_u,
 
 // Compute a new gain field g[].
 void compute_new_gain_field (vcl_vector<InputImagePointer>& mem_fun_u, 
-                             InputImagePointer& img_y, 
                              InputImagePointer& gain_field_g,
                              const int option, const float gain_th);
 
