@@ -820,13 +820,6 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     }
   }
 
-  typename itk::ImageFileWriter<InputImageType>::Pointer w = itk::ImageFileWriter<InputImageType>::New();        
-  char filename[128];
-  sprintf( filename, "reg%03d.mha", 10 );
-  w->SetFileName( filename );
-  w->SetInput( image );
-  w->Update();
-  
   vcl_printf ("      # pixels > thresh (%f) = %d\n", thresh, SZ);
 
   vnl_matrix<double> y (SZ,1);
