@@ -183,7 +183,7 @@ void PolyDataToLabelMap( vtkPolyData* polyData, LabelImageType::Pointer label)
 
     if ( label->GetLargestPossibleRegion().IsInside(idx) )
     {
-      label->SetPixel( idx, 255 );
+      label->SetPixel( idx, 1 );
     }
   }
 
@@ -199,7 +199,7 @@ void PolyDataToLabelMap( vtkPolyData* polyData, LabelImageType::Pointer label)
   typedef itk::BinaryThresholdImageFunction<LabelImageType> ImageFunctionType;
   ImageFunctionType::Pointer func = ImageFunctionType::New();
   func->SetInputImage( closedLabel );
-  func->ThresholdBelow(1);
+  func->ThresholdBelow(0);
 
   FloatImageType::IndexType idx;
   label->TransformPhysicalPointToIndex( COG, idx );
@@ -210,7 +210,7 @@ void PolyDataToLabelMap( vtkPolyData* polyData, LabelImageType::Pointer label)
   for (floodFill.GoToBegin(); !floodFill.IsAtEnd(); ++floodFill)
   {
     LabelImageType::IndexType i = floodFill.GetIndex();
-    closedLabel->SetPixel( i, 255 );
+    closedLabel->SetPixel( i, 1 );
   }
 
   LabelImageType::Pointer finalLabel = BinaryClosingFilter3D( closedLabel, ballSize );
