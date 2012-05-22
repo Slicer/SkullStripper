@@ -42,20 +42,10 @@
 #include "itkGrayscaleMorphologicalOpeningImageFilter.h"
 #include "itkGrayscaleFunctionErodeImageFilter.h"
 
-#include "vtkSphereSource.h"
-#include "vtkPolyDataMapper.h"
-#include "vtkActor.h"
-#include "vtkRenderWindow.h"
-#include "vtkRenderer.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkProperty.h"
-#include "vtkTriangleFilter.h"
-#include "vtkPlatonicSolidSource.h" 
+#include "vtkSmartPointer.h"
 #include "vtkIdList.h"
 #include "vtkPolyData.h"
-#include "vtkPolyDataWriter.h"
 #include "vtkXMLPolyDataWriter.h"
-
 #include "vtkPolyDataPointSampler.h"
 
 #include "SkullStripperCLP.h"
@@ -159,7 +149,7 @@ LabelImageType::Pointer BinaryClosingFilter3D ( LabelImageType::Pointer & img , 
 
 void PolyDataToLabelMap( vtkPolyData* polyData, LabelImageType::Pointer label)
 {
-  vtkPolyDataPointSampler* sampler = vtkPolyDataPointSampler::New();
+  vtkSmartPointer<vtkPolyDataPointSampler> sampler = vtkSmartPointer<vtkPolyDataPointSampler>::New();
   sampler->SetInput( polyData );
   sampler->SetDistance( 0.75 );
   sampler->GenerateEdgePointsOn();
@@ -715,8 +705,8 @@ vtkPolyData* TessellateIcosahedron(int level)
     numtriags = numtriags / 3;
     }
 
-  vtkIdList *ids = vtkIdList::New();
-  vtkPoints *pts = vtkPoints::New();
+  vtkSmartPointer<vtkIdList> ids = vtkSmartPointer<vtkIdList>::New();
+  vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
   vtkPolyData* polyData = vtkPolyData::New();
 
   polyData ->SetPoints (pts);
@@ -733,7 +723,7 @@ vtkPolyData* TessellateIcosahedron(int level)
     }
   for (int k = 0; k < numtriags; k++)
     {
-    vtkIdList *tids = vtkIdList::New();
+    vtkSmartPointer<vtkIdList> tids = vtkSmartPointer<vtkIdList>::New();
     tids->SetNumberOfIds(0);
     tids->InsertNextId(triangs[3*k]);
     tids->InsertNextId(triangs[3*k+1]);
@@ -742,11 +732,11 @@ vtkPolyData* TessellateIcosahedron(int level)
 
     }
 
-  return polyData;
-
   delete [] all_vert;
   delete [] all_triangs;
   delete [] triangs;
+
+  return polyData;
 }
 
 int main( int argc, char *argv[] )
@@ -1178,7 +1168,8 @@ int main( int argc, char *argv[] )
 
   std::cout << headWidth << " " << headLength << " " << headHeight << std::endl;
 
-  vtkPolyData* polyData = TessellateIcosahedron( sphericalResolution );
+  vtkSmartPointer<vtkPolyData> polyData;
+  polyData.TakeReference( TessellateIcosahedron( sphericalResolution ) );
   int nPoints = polyData->GetNumberOfPoints();
  
   // Build neighborhood structure
@@ -1698,7 +1689,7 @@ int main( int argc, char *argv[] )
     allPoints->SetPoint( k, point[0], point[1], point[2] );
   }  
 
-  vtkXMLPolyDataWriter *wPoly = vtkXMLPolyDataWriter::New();
+  vtkSmartPointer<vtkXMLPolyDataWriter> wPoly = vtkSmartPointer<vtkXMLPolyDataWriter>::New();
   wPoly->SetFileName(brainSurface.c_str());
   wPoly->SetInput(polyData);    
   wPoly->Update();
