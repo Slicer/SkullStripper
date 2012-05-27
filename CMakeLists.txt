@@ -29,7 +29,7 @@ configure_file(
   @ONLY
   )
 
-#-----------------------------------------------------------------------------  
+#-----------------------------------------------------------------------------
 set(cli_module_target_libraries
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}
@@ -43,12 +43,10 @@ slicerMacroBuildCLI(
 
 #-----------------------------------------------------------------------------
 if(BUILD_TESTING)
-#  add_subdirectory(Testing)
+  add_subdirectory(Testing)
 endif()
 
 #-----------------------------------------------------------------------------
 if(NOT Slicer_SOURCE_DIR)
   include(${Slicer_EXTENSION_CPACK})
 endif()
-
-
