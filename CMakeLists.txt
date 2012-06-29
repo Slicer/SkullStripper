@@ -36,7 +36,7 @@ set(cli_module_target_libraries
   )
 
 #-----------------------------------------------------------------------------
-slicerMacroBuildCLI(
+SEMMacroBuildCLI(
   NAME ${MODULE_NAME}
   TARGET_LIBRARIES ${cli_module_target_libraries}
   )
