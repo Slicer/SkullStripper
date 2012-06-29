@@ -22,13 +22,6 @@ if(NOT Slicer_SOURCE_DIR)
   include(${Slicer_USE_FILE})
 endif()
 
-# Configure XML description
-configure_file(
-  ${MODULE_NAME}.xml.in
-  ${CMAKE_CURRENT_BINARY_DIR}/${MODULE_NAME}.xml
-  @ONLY
-  )
-
 #-----------------------------------------------------------------------------
 set(MODULE_TARGET_LIBRARIES
   ${ITK_LIBRARIES}
