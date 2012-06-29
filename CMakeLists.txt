@@ -30,7 +30,7 @@ configure_file(
   )
 
 #-----------------------------------------------------------------------------
-set(cli_module_target_libraries
+set(MODULE_TARGET_LIBRARIES
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}
   )
@@ -38,7 +38,7 @@ set(cli_module_target_libraries
 #-----------------------------------------------------------------------------
 SEMMacroBuildCLI(
   NAME ${MODULE_NAME}
-  TARGET_LIBRARIES ${cli_module_target_libraries}
+  TARGET_LIBRARIES ${MODULE_TARGET_LIBRARIES}
   )
 
 #-----------------------------------------------------------------------------
