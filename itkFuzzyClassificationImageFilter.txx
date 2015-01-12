@@ -54,7 +54,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   m_ImageMask = NULL;
 
   typename TOutputImage::Pointer output = TOutputImage::New();
-  this->ProcessObject::SetNumberOfOutputs( m_NumberOfClasses );
+  this->ProcessObject::SetNumberOfIndexedOutputs( m_NumberOfClasses );
   this->ProcessObject::SetNthOutput(1, output.GetPointer());
 
   this->m_ClassCentroid.resize( m_NumberOfClasses );
@@ -230,7 +230,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 
   std::sort(classCentroidWithIndex.begin(), classCentroidWithIndex.end(),  func4sortpairs );
 
-  this->SetNumberOfOutputs( this->m_NumberOfClasses );
+  this->SetNumberOfIndexedOutputs( this->m_NumberOfClasses );
 
   for (int k = 0; k < this->m_NumberOfClasses; k++)
   {

@@ -150,7 +150,7 @@ LabelImageType::Pointer BinaryClosingFilter3D ( LabelImageType::Pointer & img , 
 void PolyDataToLabelMap( vtkPolyData* polyData, LabelImageType::Pointer label)
 {
   vtkSmartPointer<vtkPolyDataPointSampler> sampler = vtkSmartPointer<vtkPolyDataPointSampler>::New();
-  sampler->SetInput( polyData );
+  sampler->SetInputData( polyData );
   sampler->SetDistance( 0.75 );
   sampler->GenerateEdgePointsOn();
   sampler->GenerateInteriorPointsOn();
@@ -1691,7 +1691,7 @@ int main( int argc, char *argv[] )
 
   vtkSmartPointer<vtkXMLPolyDataWriter> wPoly = vtkSmartPointer<vtkXMLPolyDataWriter>::New();
   wPoly->SetFileName(brainSurface.c_str());
-  wPoly->SetInput(polyData);    
+  wPoly->SetInputData(polyData);    
   wPoly->Update();
 
   allPoints = polyData->GetPoints();

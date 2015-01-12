@@ -78,7 +78,7 @@ public:
   void SetNumberOfClasses( int n )
   {
     this->m_NumberOfClasses = n;
-    this->SetNumberOfOutputs( n );
+    this->SetNumberOfIndexedOutputs( n );
     return;
   }
 
