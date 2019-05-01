@@ -558,18 +558,18 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     double denominator = 0;
     for (ity.GoToBegin(), itg.GoToBegin(), itu.GoToBegin(); !ity.IsAtEnd(); ++ity, ++itg, ++itu) {
       float mem_fun_u_kj = itu.Get();
-      assert (vnl_math_isnan (mem_fun_u_kj) == false);
+      assert (vnl_math::isnan(mem_fun_u_kj) == false);
       float gain_field_g_j = itg.Get();
-      assert (vnl_math_isnan (gain_field_g_j) == false);
+      assert (vnl_math::isnan(gain_field_g_j) == false);
       float img_y_j = ity.Get();
-      assert (vnl_math_isnan (img_y_j) == false);
+      assert (vnl_math::isnan(img_y_j) == false);
 
       ///double numerator = mem_fun_u[k][j] * mem_fun_u[k][j] * gain_field_g[j] * img_y[j];
       numerator += mem_fun_u_kj * mem_fun_u_kj * gain_field_g_j * img_y_j;
-      assert (vnl_math_isnan (numerator) == false);
+      assert (vnl_math::isnan(numerator) == false);
       ///double denominator = mem_fun_u[k][j] * mem_fun_u[k][j] * gain_field_g[j] * gain_field_g[j];
       denominator += mem_fun_u_kj * mem_fun_u_kj * gain_field_g_j * gain_field_g_j;
-      assert (vnl_math_isnan (denominator) == false);
+      assert (vnl_math::isnan(denominator) == false);
     }
 
     if (denominator == 0) {
@@ -653,9 +653,9 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 
     for (it.GoToBegin(), itn.GoToBegin(); !it.IsAtEnd(); ++it, ++itn) {
       float mem_fun_u_kj = it.Get();
-      assert (vnl_math_isnan (mem_fun_u_kj) == false);
+      assert (vnl_math::isnan(mem_fun_u_kj) == false);
       float mem_fun_un_kj = itn.Get();
-      assert (vnl_math_isnan (mem_fun_un_kj) == false);
+      assert (vnl_math::isnan(mem_fun_un_kj) == false);
 
       ///float diff = member_fun_u[k][j] - member_fun_un[k][j];
       float diff = mem_fun_u_kj - mem_fun_un_kj;
