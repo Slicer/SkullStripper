@@ -21,8 +21,10 @@
 #define __itkFuzzyClassificationImageFilter_h
 
 #include "limits.h"
-#include "vcl_cstdio.h"
-#include "vcl_vector.h"
+#include <vcl_compiler.h>
+#include <iostream>
+#include "cstdio"
+#include "vector"
 #include "itkImageToImageFilter.h"
 #include "itkImageFileWriter.h"
 #include "itkConceptChecking.h"
@@ -135,40 +137,40 @@ void afcm_segmentation (InputImagePointer img_y,
                         const float gain_th, const float gain_min,
                         const float conv_thresh,
                         InputImagePointer& gain_field_g,
-                        vcl_vector<InputImagePointer>& mem_fun_u,
-                        vcl_vector<InputImagePointer>& mem_fun_un,
-                        vcl_vector<float>& centroid_v);
+                        std::vector<InputImagePointer>& mem_fun_u,
+                        std::vector<InputImagePointer>& mem_fun_un,
+                        std::vector<float>& centroid_v);
 
 void compute_init_centroid (InputImagePointer image,
                             const int nClass, const int nBin,
                             const float lowThreshold,
                             const float highThreshold,
-                            vcl_vector<float>& initCentroid);
+                            std::vector<float>& initCentroid);
 
 // Compute new membership functions u1[], u2[], u3[].
-void compute_new_mem_fun_u (const vcl_vector<float>& centroid_v,
+void compute_new_mem_fun_u (const std::vector<float>& centroid_v,
                             InputImagePointer gain_field_g,
                             InputImagePointer img_y,
                             const float bg_thresh,
-                            vcl_vector<InputImagePointer>& mem_fun_u);
+                            std::vector<InputImagePointer>& mem_fun_u);
 
 // Compute the new centroids v1, v2, v3.
-void compute_new_centroids (const vcl_vector<InputImagePointer>& mem_fun_u,
+void compute_new_centroids (const std::vector<InputImagePointer>& mem_fun_u,
                             InputImagePointer& gain_field_g,
                             InputImagePointer& img_y,
-                            vcl_vector<float>& centroid_v);
+                            std::vector<float>& centroid_v);
 
 // Compute a new gain field g[].
-void compute_new_gain_field (vcl_vector<InputImagePointer>& mem_fun_u,
+void compute_new_gain_field (std::vector<InputImagePointer>& mem_fun_u,
                              InputImagePointer& gain_field_g,
                              const int option, const float gain_th);
 
 // Test convergence.
-bool test_convergence (const vcl_vector<InputImagePointer>& mem_fun_u,
-                       const vcl_vector<InputImagePointer>& mem_fun_un,
+bool test_convergence (const std::vector<InputImagePointer>& mem_fun_u,
+                       const std::vector<InputImagePointer>& mem_fun_un,
                        const float conv_thresh);
 
-int CountMode (const vcl_vector<float>& v);
+int CountMode (const std::vector<float>& v);
 
 void img_regression_linear (InputImagePointer& image,
                             const float thresh,
@@ -195,33 +197,33 @@ void afcm_segmentation_grid (InputImagePointer img_y,
                              const float conv_thresh,
                              const int n_grid,
                              InputImagePointer& gain_field_g,
-                             vcl_vector<InputImagePointer>& mem_fun_u,
-                             vcl_vector<InputImagePointer>& mem_fun_un,
-                             vcl_vector<float>& centroid_v);
+                             std::vector<InputImagePointer>& mem_fun_u,
+                             std::vector<InputImagePointer>& mem_fun_un,
+                             std::vector<float>& centroid_v);
 
 
-void grid_regression_linear (const vcl_vector<vcl_vector<float> >& centroid_v_grid,
-                             const vcl_vector<typename InputImageType::IndexType>& grid_center_index,
+void grid_regression_linear (const std::vector<std::vector<float> >& centroid_v_grid,
+                             const std::vector<typename InputImageType::IndexType>& grid_center_index,
                              vnl_matrix<double>& B);
 
-void grid_regression_quadratic (const vcl_vector<vcl_vector<float> >& centroid_v_grid,
-                                const vcl_vector<typename InputImageType::IndexType>& grid_center_index,
+void grid_regression_quadratic (const std::vector<std::vector<float> >& centroid_v_grid,
+                                const std::vector<typename InputImageType::IndexType>& grid_center_index,
                                 vnl_matrix<double>& B);
 
 //===================================================================
 
-void centroid_linear_fit (const vcl_vector<typename InputImageType::IndexType>& grid_center_index,
+void centroid_linear_fit (const std::vector<typename InputImageType::IndexType>& grid_center_index,
                           const vnl_matrix<double>& B,
-                          vcl_vector<float>& centroid_vn_grid);
+                          std::vector<float>& centroid_vn_grid);
 
-void centroid_quadratic_fit (const vcl_vector<typename InputImageType::IndexType>& grid_center_index,
+void centroid_quadratic_fit (const std::vector<typename InputImageType::IndexType>& grid_center_index,
                              const vnl_matrix<double>& B,
-                             vcl_vector<float>& centroid_vn_grid);
+                             std::vector<float>& centroid_vn_grid);
 
 void compute_histogram (InputImagePointer& image,
-                        vcl_vector<float>& histVector,
-                        vcl_vector<float>& binMax,
-                        vcl_vector<float>& binMin,
+                        std::vector<float>& histVector,
+                        std::vector<float>& binMax,
+                        std::vector<float>& binMin,
                         int& nBin);
 
 void HistogramEqualization (InputImagePointer& image);
@@ -235,18 +237,18 @@ void compute_grid_imgs (InputImagePointer& image,
                         const int xmin, const int ymin, const int zmin,
                         const int xmax, const int ymax, const int zmax,
                         const int n_grid,
-                        vcl_vector<InputImagePointer>& image_grid,
-                        vcl_vector<typename InputImageType::IndexType>& grid_center_index);
+                        std::vector<InputImagePointer>& image_grid,
+                        std::vector<typename InputImageType::IndexType>& grid_center_index);
 
-void compute_gain_from_grids (const vcl_vector<InputImagePointer>& gain_field_g_grid,
+void compute_gain_from_grids (const std::vector<InputImagePointer>& gain_field_g_grid,
                               InputImagePointer& img_y, const float bg_thresh,
                               InputImagePointer& gain_field_g);
 
 void update_gain_to_image (InputImagePointer& gain_field,
                            InputImagePointer& image);
 
-double compute_diff_norm (const vcl_vector<vcl_vector<float> >& centroid_v_grid,
-                          const vcl_vector<float>& centroid_vn_grid);
+double compute_diff_norm (const std::vector<std::vector<float> >& centroid_v_grid,
+                          const std::vector<float>& centroid_vn_grid);
 
 //mask the final gain_field with image and bg_thresh.
 void mask_gain_field (InputImagePointer& image,
