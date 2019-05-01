@@ -19,11 +19,11 @@
 
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkLinearInterpolateImageFunction.h"
-#include "itkSignedMaurerDistanceMapImageFilter.h" 
+#include "itkSignedMaurerDistanceMapImageFilter.h"
 #include "itkSphereSpatialFunction.h"
 #include "itkFloodFilledSpatialFunctionConditionalIterator.h"
 #include "itkFloodFilledImageFunctionConditionalIterator.h"
-#include "itkVotingBinaryIterativeHoleFillingImageFilter.h" 
+#include "itkVotingBinaryIterativeHoleFillingImageFilter.h"
 #include "itkBinaryThresholdImageFunction.h"
 
 #include "itkBinaryDilateImageFilter.h"
@@ -196,7 +196,7 @@ void PolyDataToLabelMap( vtkPolyData* polyData, LabelImageType::Pointer label)
 
   itk::FloodFilledImageFunctionConditionalIterator<LabelImageType, ImageFunctionType>
     floodFill( closedLabel, func, idx );
-  
+
   for (floodFill.GoToBegin(); !floodFill.IsAtEnd(); ++floodFill)
   {
     LabelImageType::IndexType i = floodFill.GetIndex();
@@ -289,7 +289,7 @@ int FindTopSlice( ImageType::Pointer fixed )
   }
 
   unsigned short signalThreshold = static_cast<unsigned short>(static_cast<double>(projection[topslice])/2);
-  
+
   //for (int k = 0; k < size[2]; k++)
   //{
   //std::cout << k << " " << projection[k] << "; \n";
@@ -345,13 +345,13 @@ void ComputeVertexNeighbors(vtkIdType iVertexId, vtkPolyData* pMesh, std::vector
   std::set<vtkIdType> setNeighbors;
   vtkIdType* pIncidentCells;
   unsigned short iNumCells;
-      
+
   pMesh->GetPointCells(iVertexId, iNumCells, pIncidentCells);
-            
+
   int j;
   vtkIdType* pIncidentPoints;
   vtkIdType iNumPoints;
-                  
+
   for(int i=0; i<iNumCells; ++i)
     {
     pMesh->GetCellPoints(pIncidentCells[i], iNumPoints, pIncidentPoints);
@@ -359,14 +359,14 @@ void ComputeVertexNeighbors(vtkIdType iVertexId, vtkPolyData* pMesh, std::vector
       if(pIncidentPoints[j]!=iVertexId)
         setNeighbors.insert(pIncidentPoints[j]);
     }
-  
+
   // make pointIds in order
   std::vector<vtkIdType> pIds;
   for (std::set<vtkIdType>::iterator m = setNeighbors.begin(); m != setNeighbors.end(); m++)
     {
     pIds.push_back( *m );
     }
-  
+
   // find first edge
   vtkIdType Id0 = pIds[0];
   vtkIdType Id1;
@@ -436,15 +436,15 @@ void ComputeVertexNeighbors(vtkIdType iVertexId, vtkPolyData* pMesh, std::vector
       }
     }
 }
-                    
+
 vtkPolyData* TessellateIcosahedron(int level)
 {
 
   //Calculate n_vertex, n_triag
   int n=0;
-  if(level > 2) 
+  if(level > 2)
     {
-    for(int i=1; i<(level-1); i++) 
+    for(int i=1; i<(level-1); i++)
       n += i;
     }
   int n_vert = 12 + (level - 1)*30 + n*20;
@@ -453,7 +453,7 @@ vtkPolyData* TessellateIcosahedron(int level)
     {
     numtriags = 20;
     }
-  else 
+  else
     {
     n = 1;
     do
@@ -463,7 +463,7 @@ vtkPolyData* TessellateIcosahedron(int level)
         numtriags = numtriags + 3;
         if(m != n)
           numtriags = numtriags + 3;
-      
+
         }
       n++;
       }while(n<=level);
@@ -478,18 +478,18 @@ vtkPolyData* TessellateIcosahedron(int level)
   int * triangs = new int[3*numtriags];
 
   int i, m, k;
-  double x1, x2, y1, y2, z1, z2, x3, y3, z3; 
+  double x1, x2, y1, y2, z1, z2, x3, y3, z3;
   double dx12, dy12, dz12, dx23, dy23, dz23;
-  double length;   
-   
+  double length;
+
   double epsilon = 0.00001;//machine epsilon??
-   
+
   memcpy(all_vert, vert, 12*sizeof(Point3));
-   
+
   //std::cout<<"after memcpy"<<std::endl;
-   
+
   k=12;
-  for(i=0; i<30; i++) 
+  for(i=0; i<30; i++)
     {
     x1 = vert[edge[i][0] ][0];
     y1 = vert[edge[i][0] ][1];
@@ -500,13 +500,13 @@ vtkPolyData* TessellateIcosahedron(int level)
     dx12 = (x2 - x1)/level;
     dy12 = (y2 - y1)/level;
     dz12 = (z2 - z1)/level;
-    for(n=1; n<level; n++) 
+    for(n=1; n<level; n++)
       {
       all_vert[k][0] = x1 + n*dx12;
       all_vert[k][1] = y1 + n*dy12;
       all_vert[k][2] = z1 + n*dz12;
       length = sqrt(static_cast<double> (all_vert[k][0]*all_vert[k][0]+
-                                         all_vert[k][1]*all_vert[k][1]+ 
+                                         all_vert[k][1]*all_vert[k][1]+
                                          all_vert[k][2]*all_vert[k][2]));
       all_vert[k][0] /= length;
       all_vert[k][1] /= length;
@@ -515,9 +515,9 @@ vtkPolyData* TessellateIcosahedron(int level)
       }
     }
 
-  if(level > 2) 
+  if(level > 2)
     {
-    for(i=0; i<20; i++) 
+    for(i=0; i<20; i++)
       {
       x1 = vert[triang[i][0] ][0];
       y1 = vert[triang[i][0] ][1];
@@ -536,9 +536,9 @@ vtkPolyData* TessellateIcosahedron(int level)
       dz23 = (z3 - z2)/level;
 
       n = 1;
-      do 
+      do
         {
-        for(m=1; m<=n; m++) 
+        for(m=1; m<=n; m++)
           {
           all_vert[k][0] = x1 + (n+1)*dx12 + m*dx23;
           all_vert[k][1] = y1 + (n+1)*dy12 + m*dy23;
@@ -556,14 +556,14 @@ vtkPolyData* TessellateIcosahedron(int level)
       }
     }
   numtriags=0;
-   
-  //std::cout<<"before get triangulation"<<std::endl;   
+
+  //std::cout<<"before get triangulation"<<std::endl;
   //std::cout<<n_triangs<<std::endl;
-   
+
   // get triangulation
-  if (level > 1) 
+  if (level > 1)
     {
-    for(i=0; i<20; i++) 
+    for(i=0; i<20; i++)
       {
       x1 = vert[triang[i][0] ][0];
       y1 = vert[triang[i][0] ][1];
@@ -582,9 +582,9 @@ vtkPolyData* TessellateIcosahedron(int level)
       dz23 = (z3 - z2)/level;
 
       n = 1;
-      do 
+      do
         {
-        for(m=1; m<=n; m++) 
+        for(m=1; m<=n; m++)
           {
           // Draw lower triangle
           all_triangs[numtriags][0] = x1 + n*dx12 + m*dx23;
@@ -617,7 +617,7 @@ vtkPolyData* TessellateIcosahedron(int level)
           all_triangs[numtriags][1] /= length;
           all_triangs[numtriags][2] /= length;
           numtriags++;
-          if ( m != n ) 
+          if ( m != n )
             {
             // Draw lower left triangle
             all_triangs[numtriags][0] = x1 + n*dx12 + m*dx23;
@@ -656,52 +656,52 @@ vtkPolyData* TessellateIcosahedron(int level)
         } while( n<=level );
       }
     }
-   
+
   //std::cout<<"before indexing of triangs"<<std::endl;
-   
+
   // indexing of triangs
-  if (level == 1) 
+  if (level == 1)
     {
     memcpy(triangs, triang, 20*3*sizeof(int));
     numtriags = 20;
-    } 
-  else 
+    }
+  else
     {
     //find for every point in triangle list the corresponding index in all_vert
-     
+
     // initialize
     for (i=0; i < numtriags; i ++) {
     triangs[i] = -1;
     }
 
     // find indexes
-    for(i=0; i<n_vert; i++) 
+    for(i=0; i<n_vert; i++)
       {
-      for (int j = 0; j < numtriags; j++) 
+      for (int j = 0; j < numtriags; j++)
         {
-        if (triangs[j] < 0) 
+        if (triangs[j] < 0)
           {
-          if ( (fabs(all_vert[i][0] - all_triangs[j][0]) < epsilon) && 
-               (fabs(all_vert[i][1] - all_triangs[j][1]) < epsilon) && 
-               (fabs(all_vert[i][2] - all_triangs[j][2]) < epsilon ) ) 
+          if ( (fabs(all_vert[i][0] - all_triangs[j][0]) < epsilon) &&
+               (fabs(all_vert[i][1] - all_triangs[j][1]) < epsilon) &&
+               (fabs(all_vert[i][2] - all_triangs[j][2]) < epsilon ) )
             {
             triangs[j] = i;
             }
           }
         }
       }
-     
-    //for(i=0; i<n_vert; i++) 
+
+    //for(i=0; i<n_vert; i++)
     //  std::cout<<triangs[3*i]<<","<<triangs[3*i+1]<<","<<triangs[3*i+2]<<std::endl;
 
-    for (i=0; i < numtriags; i ++) 
+    for (i=0; i < numtriags; i ++)
       {
       if (triangs[i] == -1)
-        std::cerr << " - " << i << " :" << all_triangs[i][0] 
+        std::cerr << " - " << i << " :" << all_triangs[i][0]
                   << "," << all_triangs[i][1] << "," << all_triangs[i][2] << std::endl;
       }
-     
-    // numtriags is the number of vertices in triangles -> divide it by 3 
+
+    // numtriags is the number of vertices in triangles -> divide it by 3
     numtriags = numtriags / 3;
     }
 
@@ -758,7 +758,7 @@ int main( int argc, char *argv[] )
     std::vector<std::string> lines;
     itksys::SystemTools::Split(inputVolume.c_str(), lines, '/');
     subjectname = lines[lines.size()-1];
-    
+
     ImageIOType::Pointer gdcmIO = ImageIOType::New();
     SeriesFileNames::Pointer it = SeriesFileNames::New();
 
@@ -799,17 +799,17 @@ int main( int argc, char *argv[] )
 
       ImageIOType::Pointer gdcmIO = ImageIOType::New();
       SeriesFileNames::Pointer it = SeriesFileNames::New();
-      
+
       it->SetInputDirectory( dicompathname.c_str() );
-      
+
       SeriesReaderType::Pointer sReader = SeriesReaderType::New();
-      
+
       const SeriesReaderType::FileNamesContainer & filenames =
         it->GetInputFileNames();
-      
+
       sReader->SetFileNames( filenames );
       sReader->SetImageIO( gdcmIO );
-      
+
       try
         {
         sReader->Update();
@@ -822,7 +822,7 @@ int main( int argc, char *argv[] )
         std::cerr << excp << std::endl;
         return EXIT_FAILURE;
         }
-      
+
       }
     else
       {
@@ -842,7 +842,7 @@ int main( int argc, char *argv[] )
         }
       }
     }
-  
+
   std::cout << "Input image orientation: " << image0->GetDirection() << std::endl;
 
   // convert image into RAS orientation
@@ -874,14 +874,14 @@ int main( int argc, char *argv[] )
   region.SetSize(2, 2);
   dummyImage->SetRegions( region );
   dummyImage->Allocate();
-  
+
   itk::ImageRegionIteratorWithIndex<ImageType> itd( dummyImage, region );
   for (itd.GoToBegin(); !itd.IsAtEnd(); ++itd )
     {
     ImageType::IndexType idx = itd.GetIndex();
     std::cout << idx << "  ";
     ImageType::PointType pt;
-    
+
     for (int k = 0; k < 3; k++)
       {
       idx[k] = idx[k]*size[k]+startIndex[k];
@@ -916,19 +916,19 @@ int main( int argc, char *argv[] )
       {
       zmax = pt[2];
       }
-    
+
     }
 
   std::cout << "Physical extent:\n";
-  std::cout << "[ " 
-    << xmin << ", " << ymin << ", " << zmin 
-    << "] -- [ " 
-    << xmax << ", " << ymax << ", " << zmax 
+  std::cout << "[ "
+    << xmin << ", " << ymin << ", " << zmin
+    << "] -- [ "
+    << xmax << ", " << ymax << ", " << zmax
     << "]\n";
 
   ImageType::PointType origin;
-  origin[0] = xmin; origin[1] = ymin; origin[2] = zmin; 
-  
+  origin[0] = xmin; origin[1] = ymin; origin[2] = zmin;
+
   region.SetIndex(0, 0);
   region.SetIndex(1, 0);
   region.SetIndex(2, 0);
@@ -936,7 +936,7 @@ int main( int argc, char *argv[] )
   region.SetSize(0, static_cast<int>((xmax-xmin)/spacing[0]));
   region.SetSize(1, static_cast<int>((ymax-ymin)/spacing[1]));
   region.SetSize(2, static_cast<int>((zmax-zmin)/spacing[2]));
-  
+
   ImageType::Pointer outImage = ImageType::New();
   outImage->SetRegions( region );
   outImage->SetSpacing( spacing );
@@ -945,17 +945,17 @@ int main( int argc, char *argv[] )
   outImage->Allocate();
   outImage->FillBuffer( 0 );
 
-  itk::LinearInterpolateImageFunction< ImageType, double >::Pointer interpolator = 
+  itk::LinearInterpolateImageFunction< ImageType, double >::Pointer interpolator =
     itk::LinearInterpolateImageFunction< ImageType, double >::New();
 
   interpolator->SetInputImage( image0 );
-  
+
   itk::ImageRegionIteratorWithIndex<ImageType> itOut( outImage, region );
   for (itOut.GoToBegin(); !itOut.IsAtEnd(); ++itOut)
   {
     ImageType::IndexType idx = itOut.GetIndex();
     ImageType::PointType pt;
-    
+
     outImage->TransformIndexToPhysicalPoint( idx, pt );
     itk::ContinuousIndex<double, 3> cIdx;
     image0->TransformPhysicalPointToContinuousIndex( pt, cIdx );
@@ -980,7 +980,7 @@ int main( int argc, char *argv[] )
 
   region.SetIndex(2, nStartSlice);
   region.SetSize(2, numberOfSlices);
-   
+
   std::cout << "Extract region: " << region << std::endl;
 
   itk::ExtractImageFilter<ImageType, ImageType>::Pointer extract = itk::ExtractImageFilter<ImageType, ImageType>::New();
@@ -1003,7 +1003,7 @@ int main( int argc, char *argv[] )
   ballSize0[2] = 1;
   ball0.SetRadius(ballSize0);
   ball0.CreateStructuringElement();
-  
+
   grayopening->SetKernel( ball0 );
   grayopening->Update();
 
@@ -1035,7 +1035,7 @@ int main( int argc, char *argv[] )
   HistogramType::Pointer histogram = const_cast<HistogramType*>( generator->GetOutput() );
   PixelType t2 = static_cast<PixelType>(histogram->Quantile(0, 0.02));
   PixelType t98 = static_cast<PixelType> (histogram->Quantile(0, 0.98));
-  PixelType tinit = static_cast<PixelType>(t2+0.1*static_cast<float>(t98-t2));  
+  PixelType tinit = static_cast<PixelType>(t2+0.1*static_cast<float>(t98-t2));
 
   FindWhiteMatterPeak ( histogram );
 
@@ -1061,7 +1061,7 @@ int main( int argc, char *argv[] )
       COG[k] += point[k];
       }
     }
-  
+
   float HeadVolume = static_cast<float>( HeadVoxelCount );
   for (unsigned int k = 0; k < ImageDimension; k++)
     {
@@ -1071,7 +1071,7 @@ int main( int argc, char *argv[] )
 
   // geometry you learn from middle school
   float radius = pow(HeadVolume*3.0/4.0/PI, 1.0/3.0);
-  
+
   std::cout << "Threshold: \n";
   std::cout << "t2 = " << t2 << std::endl;
   std::cout << "tinit = " << tinit << std::endl;
@@ -1082,7 +1082,7 @@ int main( int argc, char *argv[] )
   std::cout << "COG = " << COG << std::endl;
 
   ImageType::IndexType COGIdx;
-  image->TransformPhysicalPointToIndex( COG, COGIdx ); 
+  image->TransformPhysicalPointToIndex( COG, COGIdx );
   std::cout << COGIdx << ": " << image->GetPixel( COGIdx ) << std::endl;
 
   // figure out aspects of the initial elipsoid
@@ -1093,7 +1093,7 @@ int main( int argc, char *argv[] )
   PixelType tNonBackground = static_cast<PixelType>(0.25*static_cast<float>(tinit));
   int xStart = 0;
   int xEnd = 0;
-  for (ImageType::IndexType::IndexValueType k = imageStart[0]; 
+  for (ImageType::IndexType::IndexValueType k = imageStart[0];
        k < imageStart[0]+static_cast<ImageType::IndexType::IndexValueType>(imageSize[0]); k++)
   {
     Idx[0] = k;
@@ -1103,7 +1103,7 @@ int main( int argc, char *argv[] )
       break;
     }
   }
-  for (ImageType::IndexType::IndexValueType k = imageStart[0]+static_cast<ImageType::IndexType::IndexValueType>(imageSize[0])-1; 
+  for (ImageType::IndexType::IndexValueType k = imageStart[0]+static_cast<ImageType::IndexType::IndexValueType>(imageSize[0])-1;
        k >= imageStart[0]; k--)
   {
     Idx[0] = k;
@@ -1118,7 +1118,7 @@ int main( int argc, char *argv[] )
   Idx = COGIdx;
   int yStart = 0;
   int yEnd = 0;
-  for (ImageType::IndexType::IndexValueType k = imageStart[1]; 
+  for (ImageType::IndexType::IndexValueType k = imageStart[1];
        k < imageStart[1]+static_cast<ImageType::IndexType::IndexValueType>(imageSize[1]); k++)
   {
     Idx[1] = k;
@@ -1171,7 +1171,7 @@ int main( int argc, char *argv[] )
   vtkSmartPointer<vtkPolyData> polyData;
   polyData.TakeReference( TessellateIcosahedron( sphericalResolution ) );
   int nPoints = polyData->GetNumberOfPoints();
- 
+
   // Build neighborhood structure
   std::vector<NeighborhoodType> NeighborhoodStructure;
   polyData->BuildLinks();
@@ -1191,7 +1191,7 @@ int main( int argc, char *argv[] )
     point[1] = point[1]*radius*headLength+COG[1];
     point[2] = point[2]*radius*headHeight+COG[2];
     allPoints->SetPoint( k, point[0], point[1], point[2] );
-    }  
+    }
 
   std::cout << "Initial mash generated\n";
   PolyDataToLabelMap( polyData, label );
@@ -1236,7 +1236,7 @@ int main( int argc, char *argv[] )
   feature->SetRegions( feature->GetLargestPossibleRegion() );
   feature->Allocate();
   feature->FillBuffer( 0 );
-  
+
   FloatImageType::Pointer featureWM = FloatImageType::New();
   featureWM->CopyInformation( wm );
   featureWM->SetRegions( featureWM->GetLargestPossibleRegion() );
@@ -1271,14 +1271,14 @@ int main( int argc, char *argv[] )
       wm0 = 1/(wm0*wm0);
     }
     g = csf0+wm0+gm0;
-    csf->SetPixel( idx, csf0/g ); 
-    gm->SetPixel( idx, gm0/g ); 
-    wm->SetPixel( idx, wm0/g ); 
+    csf->SetPixel( idx, csf0/g );
+    gm->SetPixel( idx, gm0/g );
+    wm->SetPixel( idx, wm0/g );
   }
 
   // grayscale morphological closing on csf
   typedef itk::BinaryBallStructuringElement<double, 3> KernelType;
-  typedef itk::GrayscaleMorphologicalClosingImageFilter< FloatImageType, FloatImageType, KernelType> 
+  typedef itk::GrayscaleMorphologicalClosingImageFilter< FloatImageType, FloatImageType, KernelType>
     GrayScaleClosingFilterType;
 
   GrayScaleClosingFilterType::Pointer grayclosing = GrayScaleClosingFilterType::New();
@@ -1292,7 +1292,7 @@ int main( int argc, char *argv[] )
   ballSize[2] = 2;
   ball.SetRadius(ballSize);
   ball.CreateStructuringElement();
-  
+
   grayclosing->SetKernel( ball );
   grayclosing->Update();
 
@@ -1323,7 +1323,7 @@ int main( int argc, char *argv[] )
       {
         WMCore->SetPixel( idx, 0 );
       }
-    
+
     float p = csf->GetPixel(idx);
     p += p; p -= wm->GetPixel(idx); p -= gm->GetPixel(idx);
 
@@ -1332,18 +1332,18 @@ int main( int argc, char *argv[] )
     p = static_cast<float>( itImg.Get() );
     float g = gain->GetPixel( idx );
     float wm0 = (p - classcenter[2] * g)/classstd[2];
-    
+
     featureWM->SetPixel( idx, wm0 );
     p = static_cast<float>( itImg.Get() )/g;
     itImg.Set( static_cast<ImageType::PixelType>(p) );
   }
 
   // compute distance tranfrom from WMCore, this will be used to limit deformation
-  typedef itk::SignedMaurerDistanceMapImageFilter<LabelImageType, FloatImageType> DistanceTransformType;  
+  typedef itk::SignedMaurerDistanceMapImageFilter<LabelImageType, FloatImageType> DistanceTransformType;
   DistanceTransformType::Pointer distWMCore = DistanceTransformType::New();
   distWMCore->SetInput( WMCore );
   distWMCore->Update();
-  
+
   // do iteration
 
   double radiusMin = 3.33;
@@ -1370,23 +1370,23 @@ int main( int argc, char *argv[] )
 
   std::cout << "threshold: " << lThreshold << ", " << uThreshold << std::endl;
 
-  itk::LinearInterpolateImageFunction< ImageType, double >::Pointer imgInterpolator = 
+  itk::LinearInterpolateImageFunction< ImageType, double >::Pointer imgInterpolator =
     itk::LinearInterpolateImageFunction< ImageType, double >::New();
   imgInterpolator->SetInputImage( image );
 
-  itk::LinearInterpolateImageFunction< FloatImageType, double >::Pointer fInterpolator = 
+  itk::LinearInterpolateImageFunction< FloatImageType, double >::Pointer fInterpolator =
     itk::LinearInterpolateImageFunction< FloatImageType, double >::New();
-  itk::LinearInterpolateImageFunction< FloatImageType, double >::Pointer wInterpolator = 
-    itk::LinearInterpolateImageFunction< FloatImageType, double >::New();
-
-  itk::LinearInterpolateImageFunction< FloatImageType, double >::Pointer csfInterpolator = 
-    itk::LinearInterpolateImageFunction< FloatImageType, double >::New();
-  itk::LinearInterpolateImageFunction< FloatImageType, double >::Pointer wmInterpolator = 
-    itk::LinearInterpolateImageFunction< FloatImageType, double >::New();
-  itk::LinearInterpolateImageFunction< FloatImageType, double >::Pointer gmInterpolator = 
+  itk::LinearInterpolateImageFunction< FloatImageType, double >::Pointer wInterpolator =
     itk::LinearInterpolateImageFunction< FloatImageType, double >::New();
 
-  itk::LinearInterpolateImageFunction< FloatImageType, double >::Pointer wmDistInterpolator = 
+  itk::LinearInterpolateImageFunction< FloatImageType, double >::Pointer csfInterpolator =
+    itk::LinearInterpolateImageFunction< FloatImageType, double >::New();
+  itk::LinearInterpolateImageFunction< FloatImageType, double >::Pointer wmInterpolator =
+    itk::LinearInterpolateImageFunction< FloatImageType, double >::New();
+  itk::LinearInterpolateImageFunction< FloatImageType, double >::Pointer gmInterpolator =
+    itk::LinearInterpolateImageFunction< FloatImageType, double >::New();
+
+  itk::LinearInterpolateImageFunction< FloatImageType, double >::Pointer wmDistInterpolator =
     itk::LinearInterpolateImageFunction< FloatImageType, double >::New();
 
   fInterpolator->SetInputImage( feature );
@@ -1431,12 +1431,12 @@ int main( int argc, char *argv[] )
       double update[3];
       double update1[3];
       double update2[3];
-      double update3[3];      
+      double update3[3];
 
       // 1. compute normal at the point and average position of its neighbors
       double pc[3];
       double * p = polyData->GetPoint( k );
-      pc[0] = p[0]; pc[1] = p[1]; pc[2] = p[2]; 
+      pc[0] = p[0]; pc[1] = p[1]; pc[2] = p[2];
 
       NeighborhoodType nbr = NeighborhoodStructure[k];
       int nNeighbors = nbr.size();
@@ -1452,38 +1452,38 @@ int main( int argc, char *argv[] )
         update2[m] = 0;
         update3[m] = 0;
         }
-      
+
       for (int m = 0; m < nNeighbors; m ++)
         {
         vtkIdType id = nbr[m];
         double p0[3];
         double p1[3];
         p = polyData->GetPoint( id );
-        p0[0] = p[0]; p0[1] = p[1]; p0[2] = p[2]; 
+        p0[0] = p[0]; p0[1] = p[1]; p0[2] = p[2];
         id = nbr[(m+1)%nNeighbors];
         p = polyData->GetPoint( id );
-        p1[0] = p[0]; p1[1] = p[1]; p1[2] = p[2]; 
-        
+        p1[0] = p[0]; p1[1] = p[1]; p1[2] = p[2];
+
         for (int n = 0; n < 3; n++)
           {
           average[n] += p0[n];
           p0[n] -= pc[n];
           p1[n] -= pc[n];
           }
-        
+
         averageEdgeLength += sqrt(p0[0]*p0[0]+p0[1]*p0[1]+p0[2]*p0[2]);
 
         double op[3];
         op[0] = p0[1]*p1[2]-p0[2]*p1[1];
         op[1] = p0[2]*p1[0]-p0[0]*p1[2];
         op[2] = p0[0]*p1[1]-p0[1]*p1[0];
-        
+
         for (int n = 0; n < 3; n++)
           {
           normal[n] += op[n];
           }
         }
-      
+
       average[0] /= static_cast<float>( nNeighbors );
       average[1] /= static_cast<float>( nNeighbors );
       average[2] /= static_cast<float>( nNeighbors );
@@ -1494,12 +1494,12 @@ int main( int argc, char *argv[] )
       normal[0] /= mag;
       normal[1] /= mag;
       normal[2] /= mag;
-      
+
       double diffvector[3];
       diffvector[0] = average[0]-pc[0];
       diffvector[1] = average[1]-pc[1];
       diffvector[2] = average[2]-pc[2];
-      
+
       double normalcomponent = fabs(diffvector[0]*normal[0]+diffvector[1]*normal[1]+diffvector[2]*normal[2]);
       double diffnormal[3];
       diffnormal[0] = normalcomponent*normal[0];
@@ -1522,7 +1522,7 @@ int main( int argc, char *argv[] )
       update2[0] = 0.05*w2*diffnormal[0]*stepSizeConst;
       update2[1] = 0.05*w2*diffnormal[1]*stepSizeConst;
       update2[2] = 0.05*w2*diffnormal[2]*stepSizeConst;
-      
+
       // xk = pc is a physical point
       double stepSize = stepSizeConst;
       for (int d = -LeftBound; d <= RightBound; d++)
@@ -1532,9 +1532,9 @@ int main( int argc, char *argv[] )
         // set point values
         for( int m = 0; m <3; m ++)
         {
-          point[m] = pc[m]-d*normal[m]*stepSize;         
+          point[m] = pc[m]-d*normal[m]*stepSize;
         }
-        itk::ContinuousIndex<double, 3> cidx;    
+        itk::ContinuousIndex<double, 3> cidx;
         image->TransformPhysicalPointToContinuousIndex( point, cidx );
 
         // modify stepsize based on where the current point sit relative to the WM Core
@@ -1597,7 +1597,7 @@ int main( int argc, char *argv[] )
           imageforce *= imageforceiter;
         }
 
-        //take care of areas around eyes 
+        //take care of areas around eyes
         double tanhvalue2 = tanh((static_cast <float> (imgProfile[i])-uThreshold)/(uThreshold/4));
         if ( tanhvalue2 > 0 )
         {
@@ -1615,11 +1615,11 @@ int main( int argc, char *argv[] )
       update3[0] = imageforce*normal[0];
       update3[1] = imageforce*normal[1];
       update3[2] = imageforce*normal[2];
-            
+
       update[0] = (update1[0]*1.0+update2[0]*1.0)+update3[0];
       update[1] = (update1[1]*1.0+update2[1]*1.0)+update3[1];
       update[2] = (update1[2]*1.0+update2[2]*1.0)+update3[2];
-      
+
       pc[0] += update[0];
       pc[1] += update[1];
       pc[2] += update[2];
@@ -1647,12 +1647,12 @@ int main( int argc, char *argv[] )
     change /= static_cast<float>( nPoints );
     change1 /= change3;
     change2 /= (static_cast<float>( nPoints ) - change3);
-    
+
     change3 = fabs( change1*change3/(change2*(static_cast<float>( nPoints ) - change3) ) );
     if (change3 > 10)
       {
         stepSizeConst *= 1.2;
-      } 
+      }
     else if (change3 < 5)
       {
         stepSizeConst *= 0.75;
@@ -1687,11 +1687,11 @@ int main( int argc, char *argv[] )
     point[0] = -point[0];
     point[1] = -point[1];
     allPoints->SetPoint( k, point[0], point[1], point[2] );
-  }  
+  }
 
   vtkSmartPointer<vtkXMLPolyDataWriter> wPoly = vtkSmartPointer<vtkXMLPolyDataWriter>::New();
   wPoly->SetFileName(brainSurface.c_str());
-  wPoly->SetInputData(polyData);    
+  wPoly->SetInputData(polyData);
   wPoly->Update();
 
   allPoints = polyData->GetPoints();
@@ -1701,7 +1701,7 @@ int main( int argc, char *argv[] )
     point[0] = -point[0];
     point[1] = -point[1];
     allPoints->SetPoint( k, point[0], point[1], point[2] );
-  }  
+  }
 
   // binary dilation with radius 2
   LabelImageType::Pointer imgDilate;
