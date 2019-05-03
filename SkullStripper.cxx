@@ -369,7 +369,7 @@ void ComputeVertexNeighbors(vtkIdType iVertexId, vtkPolyData* pMesh, std::vector
 
   // find first edge
   vtkIdType Id0 = pIds[0];
-  vtkIdType Id1;
+  vtkIdType Id1 = 0;
   for (::size_t k = 1; k < pIds.size(); k++)
     {
     if ( !pMesh->IsEdge( Id0, pIds[k]) )
