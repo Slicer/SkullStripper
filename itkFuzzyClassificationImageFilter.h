@@ -107,12 +107,12 @@ public:
   /** Set/Get the Image Mask. */
   itkSetObjectMacro( ImageMask,  InputImageType );
 
-  virtual void GenerateData();
+  void GenerateData() override;
 
 protected:
   FuzzyClassificationImageFilter();
   ~FuzzyClassificationImageFilter() {};
-  void PrintSelf(std::ostream& os, Indent indent) const;
+  void PrintSelf(std::ostream& os, Indent indent) const override;
 
 private:
   FuzzyClassificationImageFilter(const Self&); //purposely not implemented
