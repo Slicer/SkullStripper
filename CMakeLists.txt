@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.10.2)
 
+project(SkullStripper)
+
 #-----------------------------------------------------------------------------
 if(NOT Slicer_SOURCE_DIR)
   set(EXTENSION_NAME SkullStripper)

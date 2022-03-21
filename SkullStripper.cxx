@@ -344,12 +344,12 @@ void ComputeVertexNeighbors(vtkIdType iVertexId, vtkPolyData* pMesh, std::vector
 {
   std::set<vtkIdType> setNeighbors;
   vtkIdType* pIncidentCells;
-  unsigned short iNumCells;
+  vtkIdType iNumCells;
 
   pMesh->GetPointCells(iVertexId, iNumCells, pIncidentCells);
 
   int j;
-  vtkIdType* pIncidentPoints;
+  const vtkIdType* pIncidentPoints;
   vtkIdType iNumPoints;
 
   for(int i=0; i<iNumCells; ++i)
