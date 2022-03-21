@@ -1680,28 +1680,10 @@ int main( int argc, char *argv[] )
 
   PolyDataToLabelMap( polyData, label );
 
-  allPoints = polyData->GetPoints();
-  for (int k = 0; k < nPoints; k++)
-  {
-    double* point = polyData->GetPoint( k );
-    point[0] = -point[0];
-    point[1] = -point[1];
-    allPoints->SetPoint( k, point[0], point[1], point[2] );
-  }
-
   vtkSmartPointer<vtkXMLPolyDataWriter> wPoly = vtkSmartPointer<vtkXMLPolyDataWriter>::New();
   wPoly->SetFileName(brainSurface.c_str());
   wPoly->SetInputData(polyData);
   wPoly->Update();
-
-  allPoints = polyData->GetPoints();
-  for (int k = 0; k < nPoints; k++)
-  {
-    double* point = polyData->GetPoint( k );
-    point[0] = -point[0];
-    point[1] = -point[1];
-    allPoints->SetPoint( k, point[0], point[1], point[2] );
-  }
 
   // binary dilation with radius 2
   LabelImageType::Pointer imgDilate;
