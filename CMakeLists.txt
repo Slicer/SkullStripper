@@ -5,12 +5,12 @@ project(SkullStripper)
 #-----------------------------------------------------------------------------
 if(NOT Slicer_SOURCE_DIR)
   set(EXTENSION_NAME SkullStripper)
-  set(EXTENSION_HOMEPAGE "http://www.slicer.org/slicerWiki/index.php/Documentation/4.1/Modules/${EXTENSION_NAME}")
+  set(EXTENSION_HOMEPAGE "https://www.slicer.org/slicerWiki/index.php/Documentation/4.1/Modules/SkullStripper")
   set(EXTENSION_CATEGORY "Segmentation")
   set(EXTENSION_CONTRIBUTORS "Xiaodong Tao (GE), Jean-Christophe Fillion-Robin (Kitware)")
   set(EXTENSION_DESCRIPTION "Skull stripping for structural MR images of the brain, tested on T1 and T2 contrast.")
-  set(EXTENSION_ICONURL "http://www.slicer.org/slicerWiki/images/f/f2/SkullStripper.png")
-  set(EXTENSION_SCREENSHOTURLS "http://wiki.slicer.org/slicerWiki/images/a/ab/Slicer-r19441-CLIExtensionTemplate-screenshot.png http://wiki.slicer.org/slicerWiki/images/1/1e/Slicer-r19441-CLIExtensionTemplate-screenshot-2.png")
+  set(EXTENSION_ICONURL "https://www.slicer.org/slicerWiki/images/f/f2/SkullStripper.png")
+  set(EXTENSION_SCREENSHOTURLS "https://wiki.slicer.org/slicerWiki/images/a/ab/Slicer-r19441-CLIExtensionTemplate-screenshot.png https://wiki.slicer.org/slicerWiki/images/1/1e/Slicer-r19441-CLIExtensionTemplate-screenshot-2.png")
 endif()
 
 #-----------------------------------------------------------------------------
