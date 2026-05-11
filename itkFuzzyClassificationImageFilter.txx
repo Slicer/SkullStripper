@@ -757,7 +757,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   Xt.clear();
   y.clear();
   //Solve for the linear normal equation: (x'*x) * b = (x'*y)
-  vnl_matrix<double> Xt_X_inv = vnl_matrix_inverse<double>(Xt_X);
+  vnl_matrix<double> Xt_X_inv = vnl_matrix_inverse<double>(Xt_X).as_matrix();
   Xt_X.clear();
   //b = inv(x'*x) * (x'*y);
   B = Xt_X_inv * Xt_y;
@@ -908,7 +908,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   Xt.clear();
   y.clear();
   //Solve for the linear normal equation: (x'*x) * b = (x'*y)
-  vnl_matrix<double> Xt_X_inv = vnl_matrix_inverse<double>(Xt_X);
+  vnl_matrix<double> Xt_X_inv = vnl_matrix_inverse<double>(Xt_X).as_matrix();
   Xt_X.clear();
   //b = inv(x'*x) * (x'*y);
   B = Xt_X_inv * Xt_y;
@@ -1218,7 +1218,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   Xt.clear();
   y.clear();
   //Solve for the linear normal equation: (x'*x) * b = (x'*y)
-  vnl_matrix<double> Xt_X_inv = vnl_matrix_inverse<double>(Xt_X);
+  vnl_matrix<double> Xt_X_inv = vnl_matrix_inverse<double>(Xt_X).as_matrix();
   Xt_X.clear();
   //b = inv(x'*x) * (x'*y);
   B = Xt_X_inv * Xt_y;
@@ -1340,7 +1340,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   Xt.clear();
   y.clear();
   //Solve for the linear normal equation: (x'*x) * b = (x'*y)
-  vnl_matrix<double> Xt_X_inv = vnl_matrix_inverse<double>(Xt_X);
+  vnl_matrix<double> Xt_X_inv = vnl_matrix_inverse<double>(Xt_X).as_matrix();
   Xt_X.clear();
   //b = inv(x'*x) * (x'*y);
   B = Xt_X_inv * Xt_y;
